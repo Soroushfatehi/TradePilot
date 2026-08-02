@@ -316,7 +316,7 @@
     font-family:'Vazirmatn';
     font-size:10.5px;
     font-weight:600;
-    padding:4px 14px;
+    padding:4px 8px;
     cursor:pointer;
   }
   .tab-btn svg{width:22px;height:22px;stroke:var(--muted);fill:none;stroke-width:1.8;}
@@ -398,15 +398,167 @@
   .alloc-bar-track{height:4px;background:var(--track);border-radius:2px;margin-top:8px;overflow:hidden;}
   .alloc-bar-fill{height:100%;background:var(--accent);border-radius:2px;}
   .alloc-del{background:none;border:none;color:var(--red);font-size:11.5px;cursor:pointer;margin-top:8px;padding:0;font-family:'Vazirmatn';}
+
+  .strategy-entry{padding:14px 0;border-top:1px solid var(--hairline);}
+  .strategy-entry:first-child{border-top:none;}
+  .strategy-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px;}
+  .strategy-name{font-weight:700;font-size:14.5px;}
+  .strategy-cat{font-size:11px;color:var(--muted);font-family:'Space Mono',monospace;}
+  .strategy-stat{font-family:'Space Mono',monospace;font-size:12.5px;color:var(--muted);direction:ltr;margin-top:4px;}
+  .strategy-details{margin-top:10px;font-size:12.5px;color:var(--muted);line-height:1.9;}
+  .strategy-details b{color:var(--ink);font-weight:600;}
+  .strategy-del{background:none;border:none;color:var(--red);font-size:11.5px;cursor:pointer;margin-top:8px;padding:0;font-family:'Vazirmatn';}
+
+  .emotion-row{padding:12px 0;border-top:1px solid var(--hairline);}
+  .emotion-row:first-child{border-top:none;}
+  .emotion-head{display:flex;justify-content:space-between;align-items:baseline;font-size:13.5px;}
+  .emotion-name{font-weight:700;}
+  .emotion-stat{font-family:'Space Mono',monospace;font-size:12px;color:var(--muted);direction:ltr;}
+  .emotion-bar-track{height:4px;background:var(--track);border-radius:2px;margin-top:8px;overflow:hidden;}
+  .emotion-bar-fill{height:100%;border-radius:2px;}
+  .psych-warn-item{
+    font-size:12.5px;
+    color:#C22E24;
+    line-height:1.8;
+    background:rgba(255,59,48,.1);
+    border:1px solid rgba(255,59,48,.22);
+    border-radius:14px;
+    padding:10px 12px;
+    margin-bottom:10px;
+  }
+  .psych-warn-item:last-child{margin-bottom:0;}
+
+  .vault-entry{padding:14px 0;border-top:1px solid var(--hairline);}
+  .vault-entry:first-child{border-top:none;}
+  .vault-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px;}
+  .vault-title{font-weight:700;font-size:14.5px;}
+  .vault-type{font-size:11px;color:var(--muted);font-family:'Space Mono',monospace;}
+  .vault-content{font-size:12.5px;color:var(--muted);line-height:1.8;margin-top:6px;word-break:break-word;}
+  .vault-content a{color:var(--accent);}
+  .vault-tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px;}
+  .vault-tag{
+    font-size:10.5px;
+    background:rgba(10,132,255,.1);
+    color:var(--accent);
+    padding:3px 8px;
+    border-radius:6px;
+    font-family:'Space Mono',monospace;
+  }
+  .vault-del{background:none;border:none;color:var(--red);font-size:11.5px;cursor:pointer;margin-top:8px;padding:0;font-family:'Vazirmatn';}
 </style>
 </head>
 <body>
 <div class="app">
-  <p class="eyebrow" id="pageEyebrow">Risk · Position Size</p>
+  <p class="eyebrow" id="pageEyebrow">Dashboard</p>
   <h1 id="pageTitle">TradePilot</h1>
-  <p class="sub" id="pageSub">سرمایه، درصد ریسک، حد ضرر و لوریج رو بده تا بگم دقیقاً چقدر از سرمایه‌ت باید وارد معامله بشه.</p>
+  <p class="sub" id="pageSub">خلاصه‌ای از عملکرد و الگوهای معاملاتی‌ات، بر اساس ژورنالی که ثبت کردی.</p>
 
-  <div class="menu-panel" data-menu="capital">
+  <div class="menu-panel" data-menu="dashboard">
+    <div class="subnav">
+      <button class="subtab active" data-menu="dashboard" data-sub="overview">خلاصه</button>
+      <button class="subtab" data-menu="dashboard" data-sub="reports">گزارش‌ها</button>
+    </div>
+
+    <div class="sub-panel" data-menu="dashboard" data-sub="overview">
+    <div class="card">
+      <p class="section-label">خلاصه سریع</p>
+      <div class="grid2">
+        <div class="mini">
+          <div class="k">تعداد معاملات</div>
+          <div class="v" id="dCountOut">۰</div>
+        </div>
+        <div class="mini">
+          <div class="k">Win Rate</div>
+          <div class="v" id="dWinRateOut">۰٪</div>
+        </div>
+        <div class="mini">
+          <div class="k">سود/زیان خالص</div>
+          <div class="v" id="dNetOut">0</div>
+        </div>
+        <div class="mini">
+          <div class="k">روند اخیر</div>
+          <div class="v" id="dTrendOut" style="font-size:13px;">—</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <p class="section-label">بهترین ساعت معامله</p>
+      <div class="result-main" id="dBestHourOut" style="font-size:26px;">—</div>
+      <div class="result-sub" id="dBestHourSub">هنوز داده‌ی کافی نیست</div>
+    </div>
+
+    <div class="card">
+      <p class="section-label">بهترین بازار / نماد</p>
+      <div class="result-main" id="dBestSymbolOut" style="font-size:26px;">—</div>
+      <div class="result-sub" id="dBestSymbolSub">هنوز داده‌ی کافی نیست</div>
+    </div>
+
+    <div class="card">
+      <p class="section-label">بهترین ستاپ</p>
+      <div class="result-main" id="dBestSetupOut" style="font-size:26px;">—</div>
+      <div class="result-sub" id="dBestSetupSub">هنوز داده‌ی کافی نیست</div>
+    </div>
+
+    <div class="card">
+      <p class="section-label">بدترین اشتباه (بزرگ‌ترین ضرر)</p>
+      <div class="result-main" id="dWorstOut" style="font-size:26px;color:var(--red);">—</div>
+      <div class="result-sub" id="dWorstSub">هنوز داده‌ی کافی نیست</div>
+      <div class="journal-details" id="dWorstLesson"></div>
+    </div>
+    </div><!-- /sub-panel overview -->
+
+    <div class="sub-panel" data-menu="dashboard" data-sub="reports" style="display:none;">
+      <div class="card">
+        <div class="presets">
+          <button type="button" class="preset-btn rperiod active" data-period="day">امروز</button>
+          <button type="button" class="preset-btn rperiod" data-period="week">این هفته</button>
+          <button type="button" class="preset-btn rperiod" data-period="month">این ماه</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <p class="section-label">گزارش عملکرد</p>
+        <div class="grid2">
+          <div class="mini">
+            <div class="k">تعداد معاملات</div>
+            <div class="v" id="rCountOut">۰</div>
+          </div>
+          <div class="mini">
+            <div class="k">Win Rate</div>
+            <div class="v" id="rWinRateOut">۰٪</div>
+          </div>
+          <div class="mini">
+            <div class="k">سود/زیان خالص</div>
+            <div class="v" id="rNetOut">0</div>
+          </div>
+          <div class="mini">
+            <div class="k">نمادهای معامله‌شده</div>
+            <div class="v" id="rSymbolsOut" style="font-size:12.5px;">—</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <p class="section-label">بهترین و بدترین معامله</p>
+        <div class="stat-row" style="border-top:none;padding-top:0;">
+          <span class="k">بهترین معامله</span>
+          <span class="v green" id="rBestTradeOut">—</span>
+        </div>
+        <div class="stat-row">
+          <span class="k">بدترین معامله</span>
+          <span class="v red" id="rWorstTradeOut">—</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <p class="section-label">خلاصه‌ی متنی</p>
+        <div class="journal-details" id="rSummaryText" style="margin-top:0;">—</div>
+      </div>
+    </div><!-- /sub-panel reports -->
+  </div>
+
+  <div class="menu-panel" data-menu="capital" style="display:none;">
     <div class="subnav">
       <button class="subtab active" data-menu="capital" data-sub="calc">محاسبه‌گر</button>
       <button class="subtab" data-menu="capital" data-sub="daily">ریسک روزانه/هفتگی</button>
@@ -562,6 +714,8 @@
       <button class="subtab active" data-menu="journal" data-sub="entry">ثبت معامله</button>
       <button class="subtab" data-menu="journal" data-sub="performance">عملکرد</button>
       <button class="subtab" data-menu="journal" data-sub="history">تاریخچه</button>
+      <button class="subtab" data-menu="journal" data-sub="strategies">استراتژی‌ها</button>
+      <button class="subtab" data-menu="journal" data-sub="psychology">روان‌شناسی</button>
     </div>
 
     <div class="sub-panel" data-menu="journal" data-sub="entry">
@@ -607,6 +761,13 @@
     <div class="field">
       <div class="field-row"><span class="field-name">مبلغ ریسک این معامله (اختیاری، برای محاسبه‌ی R)</span></div>
       <input type="number" id="jRiskAmt" placeholder="مثلاً 30" min="0" step="1" inputmode="decimal">
+    </div>
+
+    <div class="field">
+      <div class="field-row"><span class="field-name">استراتژی استفاده‌شده (اختیاری)</span></div>
+      <select id="jStrategy">
+        <option value="">— بدون استراتژی خاص —</option>
+      </select>
     </div>
 
     <div class="field" style="margin-bottom:14px;">
@@ -674,6 +835,11 @@
       <svg id="equitySvg" width="100%" height="90" viewBox="0 0 300 90" preserveAspectRatio="none"></svg>
       <div class="result-sub" style="margin-top:6px;">منحنی تجمعی سود/زیان (Equity Curve)</div>
     </div>
+
+    <div class="stat-row" style="margin-top:4px;">
+      <span class="k">بهترین استراتژی (بر اساس Win Rate)</span>
+      <span class="v" id="bestStrategyOut" style="font-size:13px;">—</span>
+    </div>
   </div>
     </div><!-- /sub-panel performance -->
 
@@ -683,6 +849,72 @@
     <div id="journalList"></div>
   </div>
     </div><!-- /sub-panel history -->
+
+    <div class="sub-panel" data-menu="journal" data-sub="strategies" style="display:none;">
+  <div class="card">
+    <p class="section-label">افزودن استراتژی / ستاپ</p>
+
+    <div class="field">
+      <div class="field-row"><span class="field-name">نام استراتژی</span></div>
+      <input type="text" id="sName" placeholder="مثلاً شکست رنج صبح" style="font-size:16px;">
+    </div>
+
+    <div class="field">
+      <div class="field-row"><span class="field-name">دسته‌بندی</span></div>
+      <select id="sCategory">
+        <option value="روندی (Trend)">روندی (Trend)</option>
+        <option value="شکست (Breakout)">شکست (Breakout)</option>
+        <option value="بازگشتی (Reversal)">بازگشتی (Reversal)</option>
+        <option value="رنج (Range)">رنج (Range)</option>
+        <option value="اسکالپ">اسکالپ</option>
+        <option value="سوئینگ">سوئینگ</option>
+        <option value="سایر">سایر</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <div class="field-row"><span class="field-name">بهترین شرایط اجرا</span></div>
+      <textarea id="sConditions" placeholder="مثلاً بازار پرنوسان، اخبار مهم نباشه"></textarea>
+    </div>
+
+    <div class="field">
+      <div class="field-row"><span class="field-name">قوانین ورود</span></div>
+      <textarea id="sEntry" placeholder="دقیقاً کِی وارد می‌شی؟"></textarea>
+    </div>
+
+    <div class="field" style="margin-bottom:0;">
+      <div class="field-row"><span class="field-name">قوانین خروج</span></div>
+      <textarea id="sExit" placeholder="دقیقاً کِی خارج می‌شی؟"></textarea>
+    </div>
+
+    <button id="addStrategyBtn" style="width:100%;margin-top:16px;background:var(--accent);color:#fff;border:none;border-radius:14px;padding:14px 0;font-family:'Vazirmatn';font-size:14.5px;font-weight:700;cursor:pointer;">ذخیره استراتژی</button>
+  </div>
+
+  <div class="card">
+    <p class="section-label">استراتژی‌های ذخیره‌شده</p>
+    <div id="strategyList"></div>
+  </div>
+    </div><!-- /sub-panel strategies -->
+
+    <div class="sub-panel" data-menu="journal" data-sub="psychology" style="display:none;">
+  <div class="card">
+    <p class="section-label">امتیاز نظم (Discipline Score)</p>
+    <div class="result-main" id="disciplineOut" style="font-size:40px;">۰٪</div>
+    <div class="result-sub" id="disciplineSub">درصد معاملاتی که با احساس «آرام و طبق پلن» انجام دادی</div>
+  </div>
+
+  <div class="card">
+    <p class="section-label">توزیع احساسات و نتیجه‌ی هرکدام</p>
+    <div id="emotionList"></div>
+  </div>
+
+  <div class="card">
+    <p class="section-label">هشدار الگوهای پرخطر</p>
+    <div id="psychWarnings">
+      <div class="journal-empty">هنوز الگوی پرخطری شناسایی نشده.</div>
+    </div>
+  </div>
+    </div><!-- /sub-panel psychology -->
   </div><!-- /menu-panel journal -->
 
   <div class="menu-panel" data-menu="watchlist" style="display:none;">
@@ -778,13 +1010,58 @@
     </div>
   </div>
 
+  <div class="menu-panel" data-menu="vault" style="display:none;">
+    <div class="card">
+      <p class="section-label">افزودن یادداشت / لینک</p>
+
+      <div class="field">
+        <div class="field-row"><span class="field-name">عنوان</span></div>
+        <input type="text" id="vTitle" placeholder="مثلاً تحلیل فاندامنتال شرکت X" style="font-size:16px;">
+      </div>
+
+      <div class="field">
+        <div class="field-row"><span class="field-name">نوع</span></div>
+        <div class="presets">
+          <button type="button" class="preset-btn vtype active" data-t="note">یادداشت</button>
+          <button type="button" class="preset-btn vtype" data-t="link">لینک</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field-row"><span class="field-name">محتوا یا آدرس لینک</span></div>
+        <textarea id="vContent" placeholder="متن یادداشت یا آدرس لینک رو بنویس"></textarea>
+      </div>
+
+      <div class="field" style="margin-bottom:0;">
+        <div class="field-row"><span class="field-name">تگ‌ها (با کاما جدا کن)</span></div>
+        <input type="text" id="vTags" placeholder="مثلاً بیت‌کوین، بنیادی، طلایی">
+      </div>
+
+      <button id="addVaultBtn" style="width:100%;margin-top:16px;background:var(--accent);color:#fff;border:none;border-radius:14px;padding:14px 0;font-family:'Vazirmatn';font-size:14.5px;font-weight:700;cursor:pointer;">ذخیره</button>
+    </div>
+
+    <div class="card">
+      <p class="section-label">جستجو در آرشیو</p>
+      <input type="text" id="vSearch" placeholder="جستجو بر اساس عنوان، تگ یا متن..." style="font-size:14px;">
+    </div>
+
+    <div class="card">
+      <p class="section-label">آرشیو من</p>
+      <div id="vaultList"></div>
+    </div>
+  </div>
+
   <p class="install-hint">
     برای نصب به‌عنوان اپ: این صفحه رو روی یک دامنه (مثلاً GitHub Pages) قرار بده — مرورگر گزینه «افزودن به صفحه اصلی» رو نشون می‌ده.
   </p>
 </div>
 
 <nav class="bottom-tabbar">
-  <button class="tab-btn active" data-menu="capital">
+  <button class="tab-btn active" data-menu="dashboard">
+    <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+    <span>داشبورد</span>
+  </button>
+  <button class="tab-btn" data-menu="capital">
     <svg viewBox="0 0 24 24"><path d="M12 2 4 5v6c0 5 3.4 8.7 8 9 4.6-.3 8-4 8-9V5l-8-3z"/></svg>
     <span>مدیریت سرمایه</span>
   </button>
@@ -799,6 +1076,10 @@
   <button class="tab-btn" data-menu="portfolio">
     <svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-9-9"/><path d="M21 12 12 12 12 3"/><path d="M12 12 5.6 18.4"/></svg>
     <span>پرتفوی</span>
+  </button>
+  <button class="tab-btn" data-menu="vault">
+    <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M9 4v16"/></svg>
+    <span>آرشیو</span>
   </button>
 </nav>
 
@@ -1052,6 +1333,7 @@ const jReason = document.getElementById('jReason');
 const jEmotion = document.getElementById('jEmotion');
 const jPL = document.getElementById('jPL');
 const jRiskAmt = document.getElementById('jRiskAmt');
+const jStrategy = document.getElementById('jStrategy');
 const jSyncLoss = document.getElementById('jSyncLoss');
 const jLesson = document.getElementById('jLesson');
 const addJournalBtn = document.getElementById('addJournalBtn');
@@ -1067,6 +1349,7 @@ const expOut = document.getElementById('expOut');
 const avgROut = document.getElementById('avgROut');
 const streakOut = document.getElementById('streakOut');
 const ddOut = document.getElementById('ddOut');
+const bestStrategyOut = document.getElementById('bestStrategyOut');
 const equitySvg = document.getElementById('equitySvg');
 
 const JOURNAL_KEY = 'tradepilot_journal';
@@ -1137,6 +1420,7 @@ function renderJournal(){
           <summary>جزئیات</summary>
           <div class="journal-details">
             <div><b>دلیل ورود:</b> ${escapeHtml(e.reason || '—')}</div>
+            ${e.strategy ? `<div style="margin-top:6px;"><b>استراتژی:</b> ${escapeHtml(e.strategy)}</div>` : ''}
             <div style="margin-top:6px;"><b>درس گرفته‌شده:</b> ${escapeHtml(e.lesson || '—')}</div>
           </div>
         </details>
@@ -1162,6 +1446,7 @@ function renderPerformance(list){
     avgROut.textContent = '—';
     streakOut.textContent = '۰';
     ddOut.textContent = '0';
+    bestStrategyOut.textContent = '—';
     equitySvg.innerHTML = '';
     return;
   }
@@ -1199,6 +1484,26 @@ function renderPerformance(list){
     maxDD = Math.max(maxDD, peak - cum);
   });
   ddOut.textContent = fmt(maxDD);
+
+  const byStrategy = {};
+  list.forEach(e=>{
+    if (!e.strategy) return;
+    if (!byStrategy[e.strategy]) byStrategy[e.strategy] = {wins:0, total:0};
+    byStrategy[e.strategy].total++;
+    if (e.pl > 0) byStrategy[e.strategy].wins++;
+  });
+  const stratNames = Object.keys(byStrategy);
+  if (stratNames.length){
+    let best = null;
+    stratNames.forEach(name=>{
+      const s = byStrategy[name];
+      const wr = (s.wins/s.total)*100;
+      if (!best || wr > best.wr) best = {name, wr, total: s.total};
+    });
+    bestStrategyOut.textContent = `${best.name} (${fmt(best.wr)}٪ از ${faNum(best.total)} معامله)`;
+  } else {
+    bestStrategyOut.textContent = '—';
+  }
 
   const minV = Math.min(...curve, 0);
   const maxV = Math.max(...curve, 0);
@@ -1240,6 +1545,7 @@ addJournalBtn.addEventListener('click', ()=>{
     emotion: jEmotion.value,
     pl,
     riskAmt: parseFloat(jRiskAmt.value) || 0,
+    strategy: jStrategy.value,
     lesson: jLesson.value.trim()
   };
   const list = loadJournal();
@@ -1258,9 +1564,14 @@ addJournalBtn.addEventListener('click', ()=>{
   jReason.value = '';
   jPL.value = '';
   jRiskAmt.value = '';
+  jStrategy.value = '';
   jLesson.value = '';
   jSyncLoss.checked = false;
   renderJournal();
+  if (typeof renderStrategies === 'function') renderStrategies();
+  if (typeof renderDashboard === 'function') renderDashboard();
+  if (typeof renderReports === 'function') renderReports();
+  if (typeof renderPsychology === 'function') renderPsychology();
 });
 
 renderJournal();
@@ -1440,11 +1751,480 @@ addHoldingBtn.addEventListener('click', ()=>{
 });
 
 renderPortfolio();
+
+/* ---------- Strategy Library ---------- */
+const sName = document.getElementById('sName');
+const sCategory = document.getElementById('sCategory');
+const sConditions = document.getElementById('sConditions');
+const sEntry = document.getElementById('sEntry');
+const sExit = document.getElementById('sExit');
+const addStrategyBtn = document.getElementById('addStrategyBtn');
+const strategyList = document.getElementById('strategyList');
+
+const STRATEGY_KEY = 'tradepilot_strategies';
+
+function loadStrategies(){
+  try{ return JSON.parse(localStorage.getItem(STRATEGY_KEY)) || []; }
+  catch(e){ return []; }
+}
+function saveStrategies(list){
+  try{ localStorage.setItem(STRATEGY_KEY, JSON.stringify(list)); }catch(e){}
+}
+
+function strategyStats(name){
+  const trades = loadJournal().filter(e => e.strategy === name);
+  if (!trades.length) return null;
+  const wins = trades.filter(e=>e.pl>0).length;
+  return { count: trades.length, winRate: (wins/trades.length)*100 };
+}
+
+function populateStrategyDropdown(){
+  const strategies = loadStrategies();
+  const current = jStrategy.value;
+  jStrategy.innerHTML = '<option value="">— بدون استراتژی خاص —</option>' +
+    strategies.map(s => `<option value="${escapeHtml(s.name)}">${escapeHtml(s.name)}</option>`).join('');
+  jStrategy.value = current;
+}
+
+function renderStrategies(){
+  const list = loadStrategies();
+  if (!list.length){
+    strategyList.innerHTML = '<div class="journal-empty">هنوز استراتژی‌ای ذخیره نکردی.</div>';
+    populateStrategyDropdown();
+    return;
+  }
+  strategyList.innerHTML = list.slice().reverse().map(s => {
+    const stats = strategyStats(s.name);
+    const statLine = stats ? `${faNum(stats.count)} معامله · ${fmt(stats.winRate)}٪ برد` : 'هنوز معامله‌ای ثبت نشده';
+    return `
+      <div class="strategy-entry">
+        <div class="strategy-head">
+          <span class="strategy-name">${escapeHtml(s.name)}</span>
+          <span class="strategy-cat">${escapeHtml(s.category)}</span>
+        </div>
+        <div class="strategy-stat">${statLine}</div>
+        <details>
+          <summary>جزئیات</summary>
+          <div class="strategy-details">
+            <div><b>بهترین شرایط:</b> ${escapeHtml(s.conditions || '—')}</div>
+            <div style="margin-top:6px;"><b>قوانین ورود:</b> ${escapeHtml(s.entryRule || '—')}</div>
+            <div style="margin-top:6px;"><b>قوانین خروج:</b> ${escapeHtml(s.exitRule || '—')}</div>
+          </div>
+        </details>
+        <button class="strategy-del" data-id="${s.id}">حذف</button>
+      </div>
+    `;
+  }).join('');
+
+  strategyList.querySelectorAll('.strategy-del').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const id = btn.dataset.id;
+      saveStrategies(loadStrategies().filter(s => String(s.id) !== id));
+      renderStrategies();
+    });
+  });
+
+  populateStrategyDropdown();
+}
+
+addStrategyBtn.addEventListener('click', ()=>{
+  const name = sName.value.trim();
+  if (!name){ sName.focus(); return; }
+  const strategy = {
+    id: Date.now(),
+    name,
+    category: sCategory.value,
+    conditions: sConditions.value.trim(),
+    entryRule: sEntry.value.trim(),
+    exitRule: sExit.value.trim()
+  };
+  const list = loadStrategies();
+  list.push(strategy);
+  saveStrategies(list);
+
+  sName.value = '';
+  sConditions.value = '';
+  sEntry.value = '';
+  sExit.value = '';
+  renderStrategies();
+});
+
+renderStrategies();
+
+/* ---------- Dashboard ---------- */
+const dCountOut = document.getElementById('dCountOut');
+const dWinRateOut = document.getElementById('dWinRateOut');
+const dNetOut = document.getElementById('dNetOut');
+const dTrendOut = document.getElementById('dTrendOut');
+const dBestHourOut = document.getElementById('dBestHourOut');
+const dBestHourSub = document.getElementById('dBestHourSub');
+const dBestSymbolOut = document.getElementById('dBestSymbolOut');
+const dBestSymbolSub = document.getElementById('dBestSymbolSub');
+const dBestSetupOut = document.getElementById('dBestSetupOut');
+const dBestSetupSub = document.getElementById('dBestSetupSub');
+const dWorstOut = document.getElementById('dWorstOut');
+const dWorstSub = document.getElementById('dWorstSub');
+const dWorstLesson = document.getElementById('dWorstLesson');
+
+function renderDashboard(){
+  const list = loadJournal();
+  const count = list.length;
+  const wins = list.filter(e=>e.pl>0).length;
+  const net = list.reduce((s,e)=>s+e.pl,0);
+
+  dCountOut.textContent = faNum(count);
+  dWinRateOut.textContent = count ? faPct((wins/count)*100) : '۰٪';
+  dNetOut.textContent = fmt(net);
+  dNetOut.className = 'v ' + (net > 0 ? 'green' : (net < 0 ? 'red' : ''));
+
+  if (count < 4){
+    dTrendOut.textContent = 'داده کم';
+    dTrendOut.style.color = 'var(--muted)';
+  } else {
+    const half = Math.floor(count/2);
+    const firstHalf = list.slice(0, half);
+    const secondHalf = list.slice(half);
+    const avg = arr => arr.reduce((s,e)=>s+e.pl,0) / arr.length;
+    const a1 = avg(firstHalf), a2 = avg(secondHalf);
+    if (a2 > a1 * 1.1){ dTrendOut.textContent = 'رو به بهبود'; dTrendOut.style.color = '#34C759'; }
+    else if (a2 < a1 * 0.9){ dTrendOut.textContent = 'رو به افت'; dTrendOut.style.color = '#FF3B30'; }
+    else { dTrendOut.textContent = 'ثابت'; dTrendOut.style.color = 'var(--ink)'; }
+  }
+
+  if (!count){
+    dBestHourOut.textContent = '—'; dBestHourSub.textContent = 'هنوز داده‌ی کافی نیست';
+    dBestSymbolOut.textContent = '—'; dBestSymbolSub.textContent = 'هنوز داده‌ی کافی نیست';
+    dBestSetupOut.textContent = '—'; dBestSetupSub.textContent = 'هنوز داده‌ی کافی نیست';
+    dWorstOut.textContent = '—'; dWorstSub.textContent = 'هنوز داده‌ی کافی نیست'; dWorstLesson.innerHTML = '';
+    return;
+  }
+
+  // Best hour (by win rate, min 2 trades in that hour)
+  const byHour = {};
+  list.forEach(e=>{
+    const h = new Date(e.ts).getHours();
+    if (!byHour[h]) byHour[h] = {wins:0, total:0};
+    byHour[h].total++;
+    if (e.pl > 0) byHour[h].wins++;
+  });
+  let bestHour = null;
+  Object.keys(byHour).forEach(h=>{
+    const s = byHour[h];
+    if (s.total < 2) return;
+    const wr = (s.wins/s.total)*100;
+    if (!bestHour || wr > bestHour.wr) bestHour = {hour: parseInt(h), wr, total: s.total};
+  });
+  if (bestHour){
+    dBestHourOut.textContent = faNum(bestHour.hour) + ':۰۰ - ' + faNum((bestHour.hour+1)%24) + ':۰۰';
+    dBestHourSub.textContent = fmt(bestHour.wr) + '٪ برد از ' + faNum(bestHour.total) + ' معامله';
+  } else {
+    dBestHourOut.textContent = '—';
+    dBestHourSub.textContent = 'برای این تحلیل حداقل ۲ معامله در یک ساعت مشخص لازمه';
+  }
+
+  // Best symbol by net P/L
+  const bySymbol = {};
+  list.forEach(e=>{
+    if (!bySymbol[e.symbol]) bySymbol[e.symbol] = 0;
+    bySymbol[e.symbol] += e.pl;
+  });
+  const symbolNames = Object.keys(bySymbol);
+  let bestSymbol = null;
+  symbolNames.forEach(sym=>{
+    if (!bestSymbol || bySymbol[sym] > bySymbol[bestSymbol]) bestSymbol = sym;
+  });
+  if (bestSymbol){
+    dBestSymbolOut.textContent = bestSymbol;
+    dBestSymbolSub.textContent = 'سود خالص: ' + fmt(bySymbol[bestSymbol]);
+  }
+
+  // Best setup (reuse strategy stats)
+  const strategies = loadStrategies();
+  let bestSetup = null;
+  strategies.forEach(s=>{
+    const stats = strategyStats(s.name);
+    if (stats && (!bestSetup || stats.winRate > bestSetup.wr)){
+      bestSetup = {name: s.name, wr: stats.winRate, count: stats.count};
+    }
+  });
+  if (bestSetup){
+    dBestSetupOut.textContent = bestSetup.name;
+    dBestSetupSub.textContent = fmt(bestSetup.wr) + '٪ برد از ' + faNum(bestSetup.count) + ' معامله';
+  }
+
+  // Worst mistake (largest single loss)
+  const losses = list.filter(e=>e.pl<0);
+  if (losses.length){
+    const worst = losses.reduce((w,e)=> e.pl < w.pl ? e : w);
+    dWorstOut.textContent = fmt(worst.pl);
+    dWorstSub.textContent = escapeHtml(worst.symbol) + ' · ' + faDate(worst.ts);
+    dWorstLesson.innerHTML = worst.lesson ? `<b>درس گرفته‌شده:</b> ${escapeHtml(worst.lesson)}` : '';
+  }
+}
+
+renderDashboard();
+
+/* ---------- Reports ---------- */
+const rCountOut = document.getElementById('rCountOut');
+const rWinRateOut = document.getElementById('rWinRateOut');
+const rNetOut = document.getElementById('rNetOut');
+const rSymbolsOut = document.getElementById('rSymbolsOut');
+const rBestTradeOut = document.getElementById('rBestTradeOut');
+const rWorstTradeOut = document.getElementById('rWorstTradeOut');
+const rSummaryText = document.getElementById('rSummaryText');
+
+let reportPeriod = 'day';
+document.querySelectorAll('.rperiod').forEach(b=>{
+  b.addEventListener('click', ()=>{
+    reportPeriod = b.dataset.period;
+    document.querySelectorAll('.rperiod').forEach(x=>x.classList.toggle('active', x === b));
+    renderReports();
+  });
+});
+
+function periodStart(period){
+  const d = new Date();
+  if (period === 'day'){
+    d.setHours(0,0,0,0);
+    return d.getTime();
+  }
+  if (period === 'week'){
+    const day = d.getDay();
+    const sinceSat = (day - 6 + 7) % 7;
+    d.setDate(d.getDate() - sinceSat);
+    d.setHours(0,0,0,0);
+    return d.getTime();
+  }
+  // month
+  d.setDate(1);
+  d.setHours(0,0,0,0);
+  return d.getTime();
+}
+
+function renderReports(){
+  const start = periodStart(reportPeriod);
+  const list = loadJournal().filter(e => e.ts >= start);
+  const periodLabel = {day:'امروز', week:'این هفته', month:'این ماه'}[reportPeriod];
+
+  const count = list.length;
+  const wins = list.filter(e=>e.pl>0).length;
+  const net = list.reduce((s,e)=>s+e.pl,0);
+  const symbols = [...new Set(list.map(e=>e.symbol))];
+
+  rCountOut.textContent = faNum(count);
+  rWinRateOut.textContent = count ? faPct((wins/count)*100) : '۰٪';
+  rNetOut.textContent = fmt(net);
+  rNetOut.className = 'v ' + (net > 0 ? 'green' : (net < 0 ? 'red' : ''));
+  rSymbolsOut.textContent = symbols.length ? symbols.join('، ') : '—';
+
+  if (!count){
+    rBestTradeOut.textContent = '—';
+    rWorstTradeOut.textContent = '—';
+    rSummaryText.textContent = `${periodLabel} هنوز معامله‌ای ثبت نشده.`;
+    return;
+  }
+
+  const best = list.reduce((b,e)=> e.pl > b.pl ? e : b);
+  const worst = list.reduce((w,e)=> e.pl < w.pl ? e : w);
+  rBestTradeOut.textContent = `${escapeHtml(best.symbol)} (${fmt(best.pl)})`;
+  rWorstTradeOut.textContent = `${escapeHtml(worst.symbol)} (${fmt(worst.pl)})`;
+
+  const netWord = net > 0 ? 'سود' : (net < 0 ? 'ضرر' : 'سربه‌سر');
+  rSummaryText.innerHTML =
+    `${periodLabel}، ${faNum(count)} معامله روی ${symbols.length} نماد (${escapeHtml(symbols.join('، '))}) ثبت کردی. ` +
+    `${faNum(wins)} معامله برد و ${faNum(count-wins)} معامله باخت داشتی (Win Rate ${fmt((wins/count)*100)}٪). ` +
+    `نتیجه‌ی کلی: ${netWord} ${fmt(Math.abs(net))}. ` +
+    `بهترین معامله‌ات ${escapeHtml(best.symbol)} با ${fmt(best.pl)} بود و بدترینش ${escapeHtml(worst.symbol)} با ${fmt(worst.pl)}.`;
+}
+
+renderReports();
+
+/* ---------- Trader Psychology ---------- */
+const disciplineOut = document.getElementById('disciplineOut');
+const disciplineSub = document.getElementById('disciplineSub');
+const emotionList = document.getElementById('emotionList');
+const psychWarnings = document.getElementById('psychWarnings');
+
+const EMOTION_COLOR = {
+  'آرام و طبق پلن': '#34C759',
+  'مطمئن': '#0A84FF',
+  'هیجانی / FOMO': '#FF9F0A',
+  'ترس': '#FF9F0A',
+  'طمع': '#FF9F0A',
+  'انتقامی (Revenge)': '#FF3B30',
+  'بی‌حوصلگی / بیش‌معامله‌گری': '#FF3B30'
+};
+const RISKY_EMOTIONS = ['انتقامی (Revenge)', 'هیجانی / FOMO', 'بی‌حوصلگی / بیش‌معامله‌گری'];
+
+function renderPsychology(){
+  const list = loadJournal();
+  const count = list.length;
+
+  if (!count){
+    disciplineOut.textContent = '۰٪';
+    disciplineSub.textContent = 'هنوز معامله‌ای ثبت نشده';
+    emotionList.innerHTML = '<div class="journal-empty">هنوز داده‌ای نیست.</div>';
+    psychWarnings.innerHTML = '<div class="journal-empty">هنوز الگوی پرخطری شناسایی نشده.</div>';
+    return;
+  }
+
+  const calmCount = list.filter(e => e.emotion === 'آرام و طبق پلن').length;
+  const disciplineScore = (calmCount/count)*100;
+  disciplineOut.textContent = fmt(disciplineScore) + '٪';
+  disciplineOut.style.color = disciplineScore < 40 ? '#FF3B30' : 'var(--ink)';
+  disciplineSub.textContent = `${faNum(calmCount)} از ${faNum(count)} معامله با ذهن آروم انجام شده`;
+
+  const byEmotion = {};
+  list.forEach(e=>{
+    const em = e.emotion || 'نامشخص';
+    if (!byEmotion[em]) byEmotion[em] = {total:0, wins:0, net:0};
+    byEmotion[em].total++;
+    byEmotion[em].net += e.pl;
+    if (e.pl > 0) byEmotion[em].wins++;
+  });
+
+  const emotionNames = Object.keys(byEmotion).sort((a,b)=> byEmotion[b].total - byEmotion[a].total);
+  emotionList.innerHTML = emotionNames.map(name=>{
+    const s = byEmotion[name];
+    const pct = (s.total/count)*100;
+    const wr = (s.wins/s.total)*100;
+    const color = EMOTION_COLOR[name] || '#8E8E93';
+    return `
+      <div class="emotion-row">
+        <div class="emotion-head">
+          <span class="emotion-name">${escapeHtml(name)}</span>
+          <span class="emotion-stat">${faNum(s.total)} معامله · ${fmt(wr)}٪ برد · ${fmt(s.net)}</span>
+        </div>
+        <div class="emotion-bar-track"><div class="emotion-bar-fill" style="width:${pct}%;background:${color};"></div></div>
+      </div>
+    `;
+  }).join('');
+
+  const warnings = [];
+  RISKY_EMOTIONS.forEach(name=>{
+    const s = byEmotion[name];
+    if (s && s.total >= 2 && s.net < 0){
+      warnings.push(`معاملات با احساس «${name}» مجموعاً ${fmt(Math.abs(s.net))} ضرر داشتن (${faNum(s.total)} معامله). این الگو رو جدی بگیر.`);
+    }
+  });
+  if (disciplineScore < 40 && count >= 5){
+    warnings.push(`فقط ${fmt(disciplineScore)}٪ معاملاتت با ذهن آروم بوده — بیشتر معاملاتت تحت تأثیر احساسات انجام شده.`);
+  }
+  psychWarnings.innerHTML = warnings.length
+    ? warnings.map(w => `<div class="psych-warn-item">${w}</div>`).join('')
+    : '<div class="journal-empty">هنوز الگوی پرخطری شناسایی نشده.</div>';
+}
+
+renderPsychology();
+
+/* ---------- Research Vault ---------- */
+const vTitle = document.getElementById('vTitle');
+const vContent = document.getElementById('vContent');
+const vTags = document.getElementById('vTags');
+const vSearch = document.getElementById('vSearch');
+const addVaultBtn = document.getElementById('addVaultBtn');
+const vaultList = document.getElementById('vaultList');
+
+const VAULT_KEY = 'tradepilot_vault';
+let vaultType = 'note';
+
+document.querySelectorAll('.vtype').forEach(b=>{
+  b.addEventListener('click', ()=>{
+    vaultType = b.dataset.t;
+    document.querySelectorAll('.vtype').forEach(x=>x.classList.toggle('active', x === b));
+  });
+});
+
+function loadVault(){
+  try{ return JSON.parse(localStorage.getItem(VAULT_KEY)) || []; }
+  catch(e){ return []; }
+}
+function saveVault(list){
+  try{ localStorage.setItem(VAULT_KEY, JSON.stringify(list)); }catch(e){}
+}
+function isUrl(str){
+  return /^https?:\/\//i.test(str.trim());
+}
+
+function renderVault(){
+  const all = loadVault();
+  const q = vSearch.value.trim().toLowerCase();
+  const list = q
+    ? all.filter(v =>
+        v.title.toLowerCase().includes(q) ||
+        v.content.toLowerCase().includes(q) ||
+        v.tags.some(t => t.toLowerCase().includes(q)))
+    : all;
+
+  if (!list.length){
+    vaultList.innerHTML = `<div class="journal-empty">${q ? 'چیزی پیدا نشد.' : 'هنوز چیزی ذخیره نکردی.'}</div>`;
+    return;
+  }
+
+  vaultList.innerHTML = list.slice().reverse().map(v => {
+    const contentHtml = (v.type === 'link' && isUrl(v.content))
+      ? `<a href="${escapeHtml(v.content)}" target="_blank" rel="noopener">${escapeHtml(v.content)}</a>`
+      : escapeHtml(v.content);
+    const tagsHtml = v.tags.length
+      ? `<div class="vault-tags">${v.tags.map(t=>`<span class="vault-tag">${escapeHtml(t)}</span>`).join('')}</div>`
+      : '';
+    return `
+      <div class="vault-entry">
+        <div class="vault-head">
+          <span class="vault-title">${escapeHtml(v.title)}</span>
+          <span class="vault-type">${v.type === 'link' ? 'لینک' : 'یادداشت'}</span>
+        </div>
+        <div class="vault-content">${contentHtml}</div>
+        ${tagsHtml}
+        <button class="vault-del" data-id="${v.id}">حذف</button>
+      </div>
+    `;
+  }).join('');
+
+  vaultList.querySelectorAll('.vault-del').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const id = btn.dataset.id;
+      saveVault(loadVault().filter(v => String(v.id) !== id));
+      renderVault();
+    });
+  });
+}
+
+addVaultBtn.addEventListener('click', ()=>{
+  const title = vTitle.value.trim();
+  const content = vContent.value.trim();
+  if (!title || !content){ vTitle.focus(); return; }
+  const tags = vTags.value.split('،').join(',').split(',').map(t=>t.trim()).filter(Boolean);
+  const entry = {
+    id: Date.now(),
+    ts: Date.now(),
+    title,
+    type: vaultType,
+    content,
+    tags
+  };
+  const list = loadVault();
+  list.push(entry);
+  saveVault(list);
+
+  vTitle.value = '';
+  vContent.value = '';
+  vTags.value = '';
+  renderVault();
+});
+
+vSearch.addEventListener('input', renderVault);
+
+renderVault();
 const pageEyebrow = document.getElementById('pageEyebrow');
 const pageTitle = document.getElementById('pageTitle');
 const pageSub = document.getElementById('pageSub');
 
 const MENU_META = {
+  dashboard: {
+    eyebrow: 'Dashboard',
+    sub: 'خلاصه‌ای از عملکرد و الگوهای معاملاتی‌ات، بر اساس ژورنالی که ثبت کردی.'
+  },
   capital: {
     eyebrow: 'Risk · Position Size',
     sub: 'سرمایه، درصد ریسک، حد ضرر و لوریج رو بده تا بگم دقیقاً چقدر از سرمایه‌ت باید وارد معامله بشه.'
@@ -1460,6 +2240,10 @@ const MENU_META = {
   portfolio: {
     eyebrow: 'Portfolio',
     sub: 'دارایی‌های واقعی‌ات رو وارد کن تا تخصیص و میزان تمرکز پرتفوی‌ت رو ببینی.'
+  },
+  vault: {
+    eyebrow: 'Research Vault',
+    sub: 'یادداشت‌ها، لینک‌ها و تحقیق‌های شخصی‌ات رو با تگ ذخیره و بعداً سرچ کن.'
   }
 };
 
