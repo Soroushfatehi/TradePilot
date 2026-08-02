@@ -258,6 +258,56 @@
     margin-top:30px;
     line-height:1.9;
   }
+
+  .section-divider{margin:38px 0 22px;border-top:1px solid var(--hairline);}
+  .section-title{font-size:20px;font-weight:800;margin:0 0 6px;color:var(--ink);}
+  .section-sub{color:var(--muted);font-size:13px;margin:0 0 20px;line-height:1.8;max-width:36ch;}
+
+  textarea{
+    width:100%;
+    background:rgba(120,120,128,.08);
+    border:1px solid rgba(255,255,255,.6);
+    border-radius:14px;
+    color:var(--ink);
+    font-family:'Vazirmatn';
+    font-size:14px;
+    padding:12px 14px;
+    outline:none;
+    resize:vertical;
+    min-height:56px;
+  }
+  textarea:focus{border-color:var(--accent);}
+
+  select{
+    width:100%;
+    background:rgba(120,120,128,.08);
+    border:1px solid rgba(255,255,255,.6);
+    border-radius:14px;
+    color:var(--ink);
+    font-family:'Vazirmatn';
+    font-size:14px;
+    padding:12px 14px;
+    outline:none;
+    appearance:none;
+    -webkit-appearance:none;
+  }
+  select:focus{border-color:var(--accent);}
+
+  .journal-entry{padding:14px 0;border-top:1px solid var(--hairline);}
+  .journal-entry:first-child{border-top:none;}
+  .journal-head{display:flex;justify-content:space-between;align-items:center;gap:8px;}
+  .journal-symbol{font-weight:700;font-size:14.5px;}
+  .journal-dir{font-size:11px;color:var(--muted);font-family:'Space Mono',monospace;margin-right:6px;}
+  .journal-meta{font-size:11px;color:var(--muted);font-family:'Space Mono',monospace;margin-top:3px;}
+  .journal-pl{font-family:'Space Mono',monospace;font-weight:700;font-size:15px;direction:ltr;}
+  .journal-pl.pos{color:#28A745;}
+  .journal-pl.neg{color:var(--red);}
+  .journal-details{margin-top:10px;font-size:12.5px;color:var(--muted);line-height:1.9;}
+  .journal-details b{color:var(--ink);font-weight:600;}
+  .journal-del{background:none;border:none;color:var(--red);font-size:11.5px;cursor:pointer;margin-top:8px;padding:0;font-family:'Vazirmatn';}
+  .journal-empty{color:var(--muted);font-size:13px;text-align:center;padding:20px 0;}
+  details summary{cursor:pointer;font-size:12px;color:var(--accent);list-style:none;}
+  details summary::-webkit-details-marker{display:none;}
 </style>
 </head>
 <body>
@@ -312,11 +362,11 @@
       </div>
       <input type="range" id="lev" min="1" max="125" step="1" value="10">
       <div class="presets">
-        <button class="preset-btn" data-v="1">1x</button>
-        <button class="preset-btn" data-v="5">5x</button>
-        <button class="preset-btn" data-v="10">10x</button>
-        <button class="preset-btn" data-v="20">20x</button>
-        <button class="preset-btn" data-v="50">50x</button>
+        <button class="preset-btn lev-preset" data-v="1">1x</button>
+        <button class="preset-btn lev-preset" data-v="5">5x</button>
+        <button class="preset-btn lev-preset" data-v="10">10x</button>
+        <button class="preset-btn lev-preset" data-v="20">20x</button>
+        <button class="preset-btn lev-preset" data-v="50">50x</button>
       </div>
     </div>
   </div>
@@ -406,6 +456,92 @@
     </div>
   </div>
 
+
+  <div class="section-divider"></div>
+  <p class="eyebrow">Trade Journal</p>
+  <p class="section-title">ژورنال معاملات</p>
+  <p class="section-sub">هر معامله رو با دلیل، احساس، و نتیجه‌اش ثبت کن تا الگوهای رفتاری و اشتباهات تکراری‌ت مشخص بشن.</p>
+
+  <div class="card">
+    <p class="section-label">ثبت معامله جدید</p>
+
+    <div class="field">
+      <div class="field-row"><span class="field-name">نماد / دارایی</span></div>
+      <input type="text" id="jSymbol" placeholder="مثلاً BTCUSDT" style="font-size:16px;">
+    </div>
+
+    <div class="field">
+      <div class="field-row"><span class="field-name">جهت معامله</span></div>
+      <div class="presets">
+        <button type="button" class="preset-btn jdir active" data-dir="long">Long</button>
+        <button type="button" class="preset-btn jdir" data-dir="short">Short</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <div class="field-row"><span class="field-name">دلیل ورود</span></div>
+      <textarea id="jReason" placeholder="چرا وارد این معامله شدی؟"></textarea>
+    </div>
+
+    <div class="field">
+      <div class="field-row"><span class="field-name">احساس هنگام معامله</span></div>
+      <select id="jEmotion">
+        <option value="آرام و طبق پلن">آرام و طبق پلن</option>
+        <option value="مطمئن">مطمئن</option>
+        <option value="هیجانی / FOMO">هیجانی / FOMO</option>
+        <option value="ترس">ترس</option>
+        <option value="طمع">طمع</option>
+        <option value="انتقامی (Revenge)">انتقامی (Revenge)</option>
+        <option value="بی‌حوصلگی / بیش‌معامله‌گری">بی‌حوصلگی / بیش‌معامله‌گری</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <div class="field-row"><span class="field-name">نتیجه معامله (سود مثبت / ضرر منفی)</span></div>
+      <input type="number" id="jPL" placeholder="مثلاً 150 یا -80" step="1" inputmode="decimal">
+    </div>
+
+    <div class="field" style="margin-bottom:14px;">
+      <label style="display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--muted);cursor:pointer;">
+        <input type="checkbox" id="jSyncLoss" style="width:16px;height:16px;">
+        اگه ضرر بود، به حد ضرر روزانه/هفتگی هم اضافه شود
+      </label>
+    </div>
+
+    <div class="field" style="margin-bottom:0;">
+      <div class="field-row"><span class="field-name">درس گرفته‌شده / یادداشت</span></div>
+      <textarea id="jLesson" placeholder="دفعه بعد چیکار می‌کنی؟"></textarea>
+    </div>
+
+    <button id="addJournalBtn" style="width:100%;margin-top:16px;background:var(--accent);color:#fff;border:none;border-radius:14px;padding:14px 0;font-family:'Vazirmatn';font-size:14.5px;font-weight:700;cursor:pointer;">ثبت معامله</button>
+  </div>
+
+  <div class="card">
+    <p class="section-label">آمار کلی</p>
+    <div class="grid2">
+      <div class="mini">
+        <div class="k">تعداد معاملات</div>
+        <div class="v" id="jCountOut">۰</div>
+      </div>
+      <div class="mini">
+        <div class="k">درصد برد (Win Rate)</div>
+        <div class="v" id="jWinRateOut">۰٪</div>
+      </div>
+      <div class="mini">
+        <div class="k">سود/زیان خالص</div>
+        <div class="v" id="jNetOut">0</div>
+      </div>
+      <div class="mini">
+        <div class="k">بردها / باخت‌ها</div>
+        <div class="v" id="jWLOut">۰ / ۰</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <p class="section-label">تاریخچه معاملات</p>
+    <div id="journalList"></div>
+  </div>
 
   <p class="install-hint">
     برای نصب به‌عنوان اپ: این صفحه رو روی یک دامنه (مثلاً GitHub Pages) قرار بده — مرورگر گزینه «افزودن به صفحه اصلی» رو نشون می‌ده.
@@ -511,14 +647,13 @@ function calc(){
     warnBox.classList.remove('show');
   }
 
-  document.querySelectorAll('.preset-btn').forEach(b=>{
+  document.querySelectorAll('.lev-preset').forEach(b=>{
     b.classList.toggle('active', parseFloat(b.dataset.v) === L);
   });
 }
 
 [capital, risk, sl, rr, lev].forEach(el => el.addEventListener('input', calc));
-document.querySelectorAll('.preset-btn').forEach(b=>{
-  if (b.id) return; // skip reset buttons, they're not leverage presets
+document.querySelectorAll('.lev-preset').forEach(b=>{
   b.addEventListener('click', ()=>{ lev.value = b.dataset.v; calc(); });
 });
 
@@ -656,6 +791,150 @@ if ('serviceWorker' in navigator){
 
 calc();
 renderRiskLog();
+
+/* ---------- Trade Journal ---------- */
+const jSymbol = document.getElementById('jSymbol');
+const jReason = document.getElementById('jReason');
+const jEmotion = document.getElementById('jEmotion');
+const jPL = document.getElementById('jPL');
+const jSyncLoss = document.getElementById('jSyncLoss');
+const jLesson = document.getElementById('jLesson');
+const addJournalBtn = document.getElementById('addJournalBtn');
+const journalList = document.getElementById('journalList');
+
+const jCountOut = document.getElementById('jCountOut');
+const jWinRateOut = document.getElementById('jWinRateOut');
+const jNetOut = document.getElementById('jNetOut');
+const jWLOut = document.getElementById('jWLOut');
+
+const JOURNAL_KEY = 'tradepilot_journal';
+let journalDirection = 'long';
+
+document.querySelectorAll('.jdir').forEach(b=>{
+  b.addEventListener('click', ()=>{
+    journalDirection = b.dataset.dir;
+    document.querySelectorAll('.jdir').forEach(x=>x.classList.toggle('active', x === b));
+  });
+});
+
+function faNum(n){
+  const digits = ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'];
+  return String(n).replace(/[0-9]/g, d => digits[d]);
+}
+function faDate(ts){
+  try{
+    return new Date(ts).toLocaleDateString('fa-IR', {year:'numeric', month:'2-digit', day:'2-digit'});
+  }catch(e){ return ''; }
+}
+
+function loadJournal(){
+  try{
+    return JSON.parse(localStorage.getItem(JOURNAL_KEY)) || [];
+  }catch(e){ return []; }
+}
+function saveJournal(list){
+  try{ localStorage.setItem(JOURNAL_KEY, JSON.stringify(list)); }catch(e){}
+}
+
+function renderJournal(){
+  const list = loadJournal();
+
+  const count = list.length;
+  const wins = list.filter(e => e.pl > 0).length;
+  const losses = list.filter(e => e.pl < 0).length;
+  const net = list.reduce((s,e) => s + e.pl, 0);
+  const winRate = count > 0 ? (wins / count) * 100 : 0;
+
+  jCountOut.textContent = faNum(count);
+  jWinRateOut.textContent = faPct(winRate);
+  jNetOut.textContent = fmt(net);
+  jNetOut.className = 'v ' + (net > 0 ? 'green' : (net < 0 ? 'red' : ''));
+  jWLOut.textContent = faNum(wins) + ' / ' + faNum(losses);
+
+  if (count === 0){
+    journalList.innerHTML = '<div class="journal-empty">هنوز معامله‌ای ثبت نشده.</div>';
+    return;
+  }
+
+  journalList.innerHTML = list.slice().reverse().map(e => {
+    const plClass = e.pl > 0 ? 'pos' : (e.pl < 0 ? 'neg' : '');
+    const dirLabel = e.dir === 'short' ? 'Short' : 'Long';
+    return `
+      <div class="journal-entry">
+        <div class="journal-head">
+          <div>
+            <span class="journal-symbol">${escapeHtml(e.symbol || '—')}</span>
+            <span class="journal-dir">${dirLabel}</span>
+            <div class="journal-meta">${faDate(e.ts)} · ${escapeHtml(e.emotion || '')}</div>
+          </div>
+          <div class="journal-pl ${plClass}">${fmt(e.pl)}</div>
+        </div>
+        <details>
+          <summary>جزئیات</summary>
+          <div class="journal-details">
+            <div><b>دلیل ورود:</b> ${escapeHtml(e.reason || '—')}</div>
+            <div style="margin-top:6px;"><b>درس گرفته‌شده:</b> ${escapeHtml(e.lesson || '—')}</div>
+          </div>
+        </details>
+        <button class="journal-del" data-id="${e.id}">حذف این معامله</button>
+      </div>
+    `;
+  }).join('');
+
+  journalList.querySelectorAll('.journal-del').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const id = btn.dataset.id;
+      const filtered = loadJournal().filter(e => String(e.id) !== id);
+      saveJournal(filtered);
+      renderJournal();
+    });
+  });
+}
+
+function escapeHtml(str){
+  return String(str)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+addJournalBtn.addEventListener('click', ()=>{
+  const symbol = jSymbol.value.trim();
+  const pl = parseFloat(jPL.value);
+  if (!symbol || isNaN(pl)){
+    jSymbol.focus();
+    return;
+  }
+  const entry = {
+    id: Date.now(),
+    ts: Date.now(),
+    symbol,
+    dir: journalDirection,
+    reason: jReason.value.trim(),
+    emotion: jEmotion.value,
+    pl,
+    lesson: jLesson.value.trim()
+  };
+  const list = loadJournal();
+  list.push(entry);
+  saveJournal(list);
+
+  if (pl < 0 && jSyncLoss.checked){
+    const state = loadRiskLog();
+    state.dailyLoss += Math.abs(pl);
+    state.weeklyLoss += Math.abs(pl);
+    saveRiskLog(state);
+    renderRiskLog();
+  }
+
+  jSymbol.value = '';
+  jReason.value = '';
+  jPL.value = '';
+  jLesson.value = '';
+  jSyncLoss.checked = false;
+  renderJournal();
+});
+
+renderJournal();
 </script>
 </body>
 </html>
