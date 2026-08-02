@@ -357,6 +357,56 @@
     <p style="margin:0"><b>سود مورد انتظار</b> = مبلغ ریسک × Risk/Reward</p>
   </div>
 
+  <div class="card">
+    <p class="section-label">مدیریت ریسک روزانه و هفتگی</p>
+
+    <div class="field">
+      <div class="field-row">
+        <span class="field-name">حد ضرر روزانه (٪ از سرمایه)</span>
+      </div>
+      <input type="number" id="dailyLimitPct" value="3" min="0" step="0.1" inputmode="decimal">
+    </div>
+
+    <div class="field">
+      <div class="field-row">
+        <span class="field-name">حد ضرر هفتگی (٪ از سرمایه)</span>
+      </div>
+      <input type="number" id="weeklyLimitPct" value="6" min="0" step="0.1" inputmode="decimal">
+    </div>
+
+    <div class="field" style="margin-bottom:0;">
+      <div class="field-row">
+        <span class="field-name">ثبت ضرر یک معامله</span>
+      </div>
+      <div style="display:flex; gap:8px;">
+        <input type="number" id="newLossAmount" placeholder="مبلغ ضرر" min="0" step="1" inputmode="decimal" style="flex:1;">
+        <button id="addLossBtn" style="background:var(--accent);color:#fff;border:none;border-radius:14px;padding:0 18px;font-family:'Vazirmatn';font-size:14px;font-weight:700;cursor:pointer;">افزودن</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <p class="result-label">وضعیت ضرر امروز</p>
+    <div class="result-main" id="dailyLossOut">0</div>
+    <div class="result-sub" id="dailyLossSub">از ۰ مجاز</div>
+    <div class="meter" id="dailyMeter"></div>
+    <div class="meter-caption"><span>۰٪</span><b id="dailyPctOut">۰٪</b><span>۱۰۰٪</span></div>
+    <div class="warn" id="dailyWarn"></div>
+
+    <p class="result-label" style="margin-top:22px;">وضعیت ضرر این هفته</p>
+    <div class="result-main" id="weeklyLossOut">0</div>
+    <div class="result-sub" id="weeklyLossSub">از ۰ مجاز</div>
+    <div class="meter" id="weeklyMeter"></div>
+    <div class="meter-caption"><span>۰٪</span><b id="weeklyPctOut">۰٪</b><span>۱۰۰٪</span></div>
+    <div class="warn" id="weeklyWarn"></div>
+
+    <div class="presets" style="margin-top:8px;">
+      <button class="preset-btn" id="resetDailyBtn" style="padding:9px 0;">ریست امروز</button>
+      <button class="preset-btn" id="resetWeeklyBtn" style="padding:9px 0;">ریست این هفته</button>
+    </div>
+  </div>
+
+
   <p class="install-hint">
     برای نصب به‌عنوان اپ: این صفحه رو روی یک دامنه (مثلاً GitHub Pages) قرار بده — مرورگر گزینه «افزودن به صفحه اصلی» رو نشون می‌ده.
   </p>
@@ -380,15 +430,35 @@ const gaugePct = document.getElementById('gaugePct');
 const warnBox = document.getElementById('warnBox');
 const meter = document.getElementById('meter');
 
-const TICK_COUNT = 20;
-const ticks = [];
-for (let i = 0; i < TICK_COUNT; i++){
-  const t = document.createElement('div');
-  t.className = 'tick';
-  t.style.height = '14px';
-  meter.appendChild(t);
-  ticks.push(t);
+function buildMeter(containerEl, count){
+  const arr = [];
+  for (let i = 0; i < count; i++){
+    const t = document.createElement('div');
+    t.className = 'tick';
+    t.style.height = '14px';
+    containerEl.appendChild(t);
+    arr.push(t);
+  }
+  return arr;
 }
+function paintMeter(ticksArr, pctRaw, color){
+  const pct = Math.min(Math.max(pctRaw, 0), 100);
+  const filledCount = Math.round((pct/100) * ticksArr.length);
+  ticksArr.forEach((t, i) => {
+    const active = i < filledCount;
+    t.style.background = active ? color : 'var(--track)';
+    t.style.boxShadow = active ? `0 2px 8px ${color}40` : 'none';
+    t.style.height = active ? (28 + (i % 3)*2) + 'px' : '14px';
+  });
+}
+function riskColor(pct){
+  if (pct > 100) return '#FF3B30';
+  if (pct > 60) return '#FF9F0A';
+  return '#34C759';
+}
+
+const TICK_COUNT = 20;
+const ticks = buildMeter(meter, TICK_COUNT);
 
 function fmt(n){
   if (!isFinite(n)) return '0';
@@ -430,19 +500,9 @@ function calc(){
   profitOut.textContent = fmt(profitAmount);
   gaugePct.textContent = faPct(marginPctOfCapital);
 
-  const clamped = Math.min(marginPctOfCapital, 100);
-  let color = '#34C759';
-  if (marginPctOfCapital > 60) color = '#FF9F0A';
-  if (marginPctOfCapital > 100) color = '#FF3B30';
+  const color = riskColor(marginPctOfCapital);
   gaugePct.style.color = color;
-
-  const filledCount = Math.round((clamped/100) * TICK_COUNT);
-  ticks.forEach((t, i) => {
-    const active = i < filledCount;
-    t.style.background = active ? color : 'var(--track)';
-    t.style.boxShadow = active ? `0 2px 8px ${color}40` : 'none';
-    t.style.height = active ? (28 + (i % 3)*2) + 'px' : '14px';
-  });
+  paintMeter(ticks, marginPctOfCapital, color);
 
   if (margin > C){
     warnBox.textContent = 'مارجین لازم از کل سرمایه‌ت بیشتره؛ لوریج رو بالاتر ببر یا حد ضرر و درصد ریسک رو کم‌تر کن.';
@@ -458,8 +518,135 @@ function calc(){
 
 [capital, risk, sl, rr, lev].forEach(el => el.addEventListener('input', calc));
 document.querySelectorAll('.preset-btn').forEach(b=>{
+  if (b.id) return; // skip reset buttons, they're not leverage presets
   b.addEventListener('click', ()=>{ lev.value = b.dataset.v; calc(); });
 });
+
+/* ---------- Daily / Weekly Loss Limit ---------- */
+const dailyLimitPct = document.getElementById('dailyLimitPct');
+const weeklyLimitPct = document.getElementById('weeklyLimitPct');
+const newLossAmount = document.getElementById('newLossAmount');
+const addLossBtn = document.getElementById('addLossBtn');
+const resetDailyBtn = document.getElementById('resetDailyBtn');
+const resetWeeklyBtn = document.getElementById('resetWeeklyBtn');
+
+const dailyLossOut = document.getElementById('dailyLossOut');
+const dailyLossSub = document.getElementById('dailyLossSub');
+const dailyPctOut = document.getElementById('dailyPctOut');
+const dailyWarn = document.getElementById('dailyWarn');
+const dailyMeterEl = document.getElementById('dailyMeter');
+const dailyTicks = buildMeter(dailyMeterEl, TICK_COUNT);
+
+const weeklyLossOut = document.getElementById('weeklyLossOut');
+const weeklyLossSub = document.getElementById('weeklyLossSub');
+const weeklyPctOut = document.getElementById('weeklyPctOut');
+const weeklyWarn = document.getElementById('weeklyWarn');
+const weeklyMeterEl = document.getElementById('weeklyMeter');
+const weeklyTicks = buildMeter(weeklyMeterEl, TICK_COUNT);
+
+const RISK_LOG_KEY = 'tradepilot_risklog';
+
+function todayStr(){
+  return new Date().toISOString().slice(0,10);
+}
+function currentWeekStart(){
+  // Iranian trading week starts Saturday
+  const d = new Date();
+  const day = d.getDay(); // 0=Sun..6=Sat
+  const sinceSat = (day - 6 + 7) % 7;
+  const sat = new Date(d);
+  sat.setDate(d.getDate() - sinceSat);
+  sat.setHours(0,0,0,0);
+  return sat.toISOString().slice(0,10);
+}
+
+function loadRiskLog(){
+  let state;
+  try{
+    state = JSON.parse(localStorage.getItem(RISK_LOG_KEY)) || {};
+  }catch(e){
+    state = {};
+  }
+  if (state.date !== todayStr()){
+    state.date = todayStr();
+    state.dailyLoss = 0;
+  }
+  if (state.weekStart !== currentWeekStart()){
+    state.weekStart = currentWeekStart();
+    state.weeklyLoss = 0;
+  }
+  if (typeof state.dailyLoss !== 'number') state.dailyLoss = 0;
+  if (typeof state.weeklyLoss !== 'number') state.weeklyLoss = 0;
+  saveRiskLog(state);
+  return state;
+}
+function saveRiskLog(state){
+  try{ localStorage.setItem(RISK_LOG_KEY, JSON.stringify(state)); }catch(e){}
+}
+
+function renderRiskLog(){
+  const C = parseFloat(capital.value) || 0;
+  const dLimitPct = parseFloat(dailyLimitPct.value) || 0;
+  const wLimitPct = parseFloat(weeklyLimitPct.value) || 0;
+  const dLimitAmt = C * (dLimitPct/100);
+  const wLimitAmt = C * (wLimitPct/100);
+
+  const state = loadRiskLog();
+
+  const dPct = dLimitAmt > 0 ? (state.dailyLoss / dLimitAmt) * 100 : 0;
+  const wPct = wLimitAmt > 0 ? (state.weeklyLoss / wLimitAmt) * 100 : 0;
+
+  dailyLossOut.textContent = fmt(state.dailyLoss);
+  dailyLossSub.textContent = 'از ' + fmt(dLimitAmt) + ' مجاز';
+  dailyPctOut.textContent = faPct(Math.min(dPct,999));
+  const dColor = riskColor(dPct);
+  dailyPctOut.style.color = dColor;
+  paintMeter(dailyTicks, dPct, dColor);
+  if (dPct >= 100){
+    dailyWarn.textContent = 'به حد ضرر مجاز امروز رسیدی — امروز معامله‌ی جدید باز نکن.';
+    dailyWarn.classList.add('show');
+  } else {
+    dailyWarn.classList.remove('show');
+  }
+
+  weeklyLossOut.textContent = fmt(state.weeklyLoss);
+  weeklyLossSub.textContent = 'از ' + fmt(wLimitAmt) + ' مجاز';
+  weeklyPctOut.textContent = faPct(Math.min(wPct,999));
+  const wColor = riskColor(wPct);
+  weeklyPctOut.style.color = wColor;
+  paintMeter(weeklyTicks, wPct, wColor);
+  if (wPct >= 100){
+    weeklyWarn.textContent = 'به حد ضرر مجاز این هفته رسیدی — تا هفته‌ی بعد معامله‌ی جدید باز نکن.';
+    weeklyWarn.classList.add('show');
+  } else {
+    weeklyWarn.classList.remove('show');
+  }
+}
+
+addLossBtn.addEventListener('click', ()=>{
+  const amt = parseFloat(newLossAmount.value);
+  if (!amt || amt <= 0) return;
+  const state = loadRiskLog();
+  state.dailyLoss += amt;
+  state.weeklyLoss += amt;
+  saveRiskLog(state);
+  newLossAmount.value = '';
+  renderRiskLog();
+});
+resetDailyBtn.addEventListener('click', ()=>{
+  const state = loadRiskLog();
+  state.dailyLoss = 0;
+  saveRiskLog(state);
+  renderRiskLog();
+});
+resetWeeklyBtn.addEventListener('click', ()=>{
+  const state = loadRiskLog();
+  state.weeklyLoss = 0;
+  saveRiskLog(state);
+  renderRiskLog();
+});
+[dailyLimitPct, weeklyLimitPct].forEach(el => el.addEventListener('input', renderRiskLog));
+capital.addEventListener('input', renderRiskLog);
 
 if ('serviceWorker' in navigator){
   window.addEventListener('load', ()=>{
@@ -468,6 +655,7 @@ if ('serviceWorker' in navigator){
 }
 
 calc();
+renderRiskLog();
 </script>
 </body>
 </html>
