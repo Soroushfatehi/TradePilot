@@ -501,6 +501,11 @@
       <input type="number" id="jPL" placeholder="مثلاً 150 یا -80" step="1" inputmode="decimal">
     </div>
 
+    <div class="field">
+      <div class="field-row"><span class="field-name">مبلغ ریسک این معامله (اختیاری، برای محاسبه‌ی R)</span></div>
+      <input type="number" id="jRiskAmt" placeholder="مثلاً 30" min="0" step="1" inputmode="decimal">
+    </div>
+
     <div class="field" style="margin-bottom:14px;">
       <label style="display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--muted);cursor:pointer;">
         <input type="checkbox" id="jSyncLoss" style="width:16px;height:16px;">
@@ -535,6 +540,34 @@
         <div class="k">بردها / باخت‌ها</div>
         <div class="v" id="jWLOut">۰ / ۰</div>
       </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <p class="section-label">تحلیل عملکرد (Performance Analytics)</p>
+    <div class="grid2">
+      <div class="mini">
+        <div class="k">Profit Factor</div>
+        <div class="v" id="pfOut">۰</div>
+      </div>
+      <div class="mini">
+        <div class="k">Expectancy (میانگین هر معامله)</div>
+        <div class="v" id="expOut">0</div>
+      </div>
+      <div class="mini">
+        <div class="k">میانگین R</div>
+        <div class="v" id="avgROut">—</div>
+      </div>
+      <div class="mini">
+        <div class="k">بیشترین باخت متوالی</div>
+        <div class="v" id="streakOut">۰</div>
+      </div>
+    </div>
+
+    <div style="margin-top:16px;">
+      <div class="result-sub" style="margin-bottom:8px;">Max Drawdown: <b id="ddOut" style="color:var(--ink);">0</b></div>
+      <svg id="equitySvg" width="100%" height="90" viewBox="0 0 300 90" preserveAspectRatio="none"></svg>
+      <div class="result-sub" style="margin-top:6px;">منحنی تجمعی سود/زیان (Equity Curve)</div>
     </div>
   </div>
 
@@ -797,6 +830,7 @@ const jSymbol = document.getElementById('jSymbol');
 const jReason = document.getElementById('jReason');
 const jEmotion = document.getElementById('jEmotion');
 const jPL = document.getElementById('jPL');
+const jRiskAmt = document.getElementById('jRiskAmt');
 const jSyncLoss = document.getElementById('jSyncLoss');
 const jLesson = document.getElementById('jLesson');
 const addJournalBtn = document.getElementById('addJournalBtn');
@@ -806,6 +840,13 @@ const jCountOut = document.getElementById('jCountOut');
 const jWinRateOut = document.getElementById('jWinRateOut');
 const jNetOut = document.getElementById('jNetOut');
 const jWLOut = document.getElementById('jWLOut');
+
+const pfOut = document.getElementById('pfOut');
+const expOut = document.getElementById('expOut');
+const avgROut = document.getElementById('avgROut');
+const streakOut = document.getElementById('streakOut');
+const ddOut = document.getElementById('ddOut');
+const equitySvg = document.getElementById('equitySvg');
 
 const JOURNAL_KEY = 'tradepilot_journal';
 let journalDirection = 'long';
@@ -851,6 +892,8 @@ function renderJournal(){
   jNetOut.className = 'v ' + (net > 0 ? 'green' : (net < 0 ? 'red' : ''));
   jWLOut.textContent = faNum(wins) + ' / ' + faNum(losses);
 
+  renderPerformance(list);
+
   if (count === 0){
     journalList.innerHTML = '<div class="journal-empty">هنوز معامله‌ای ثبت نشده.</div>';
     return;
@@ -891,6 +934,69 @@ function renderJournal(){
   });
 }
 
+function renderPerformance(list){
+  if (!list.length){
+    pfOut.textContent = '۰';
+    expOut.textContent = '0';
+    avgROut.textContent = '—';
+    streakOut.textContent = '۰';
+    ddOut.textContent = '0';
+    equitySvg.innerHTML = '';
+    return;
+  }
+
+  const grossWin = list.filter(e=>e.pl>0).reduce((s,e)=>s+e.pl,0);
+  const grossLoss = Math.abs(list.filter(e=>e.pl<0).reduce((s,e)=>s+e.pl,0));
+  const profitFactor = grossLoss > 0 ? (grossWin/grossLoss) : (grossWin > 0 ? Infinity : 0);
+  pfOut.textContent = isFinite(profitFactor) ? fmt(profitFactor) : '∞';
+
+  const expectancy = list.reduce((s,e)=>s+e.pl,0) / list.length;
+  expOut.textContent = fmt(expectancy);
+  expOut.className = 'v ' + (expectancy > 0 ? 'green' : (expectancy < 0 ? 'red' : ''));
+
+  const withR = list.filter(e => e.riskAmt && e.riskAmt > 0);
+  if (withR.length){
+    const avgR = withR.reduce((s,e)=> s + (e.pl / e.riskAmt), 0) / withR.length;
+    avgROut.textContent = fmt(avgR) + 'R';
+  } else {
+    avgROut.textContent = '—';
+  }
+
+  let maxStreak = 0, curStreak = 0;
+  list.forEach(e=>{
+    if (e.pl < 0){ curStreak++; maxStreak = Math.max(maxStreak, curStreak); }
+    else { curStreak = 0; }
+  });
+  streakOut.textContent = faNum(maxStreak);
+
+  let cum = 0, peak = 0, maxDD = 0;
+  const curve = [0];
+  list.forEach(e=>{
+    cum += e.pl;
+    curve.push(cum);
+    peak = Math.max(peak, cum);
+    maxDD = Math.max(maxDD, peak - cum);
+  });
+  ddOut.textContent = fmt(maxDD);
+
+  const minV = Math.min(...curve, 0);
+  const maxV = Math.max(...curve, 0);
+  const range = (maxV - minV) || 1;
+  const w = 300, h = 90, pad = 4;
+  const stepX = curve.length > 1 ? (w / (curve.length - 1)) : w;
+  const points = curve.map((v,i) => {
+    const x = i * stepX;
+    const y = h - pad - ((v - minV) / range) * (h - pad*2);
+    return `${x.toFixed(1)},${y.toFixed(1)}`;
+  }).join(' ');
+  const lineColor = cum >= 0 ? '#34C759' : '#FF3B30';
+  const zeroY = h - pad - ((0 - minV) / range) * (h - pad*2);
+  equitySvg.innerHTML = `
+    <line x1="0" y1="${zeroY.toFixed(1)}" x2="${w}" y2="${zeroY.toFixed(1)}" stroke="var(--hairline)" stroke-width="1"/>
+    <polyline points="${points}" fill="none" stroke="${lineColor}" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+  `;
+}
+
 function escapeHtml(str){
   return String(str)
     .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
@@ -912,6 +1018,7 @@ addJournalBtn.addEventListener('click', ()=>{
     reason: jReason.value.trim(),
     emotion: jEmotion.value,
     pl,
+    riskAmt: parseFloat(jRiskAmt.value) || 0,
     lesson: jLesson.value.trim()
   };
   const list = loadJournal();
@@ -929,6 +1036,7 @@ addJournalBtn.addEventListener('click', ()=>{
   jSymbol.value = '';
   jReason.value = '';
   jPL.value = '';
+  jRiskAmt.value = '';
   jLesson.value = '';
   jSyncLoss.checked = false;
   renderJournal();
