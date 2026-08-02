@@ -33,7 +33,7 @@
     min-height:100vh;
     display:flex;
     justify-content:center;
-    padding:44px 18px 70px;
+    padding:44px 18px 100px;
   }
   .app{width:100%;max-width:420px;}
 
@@ -263,6 +263,66 @@
   .section-title{font-size:20px;font-weight:800;margin:0 0 6px;color:var(--ink);}
   .section-sub{color:var(--muted);font-size:13px;margin:0 0 20px;line-height:1.8;max-width:36ch;}
 
+  /* ---- menu / sub-nav system ---- */
+  .subnav{
+    display:flex;
+    gap:2px;
+    background:var(--track);
+    border-radius:12px;
+    padding:3px;
+    margin-bottom:20px;
+    overflow-x:auto;
+  }
+  .subtab{
+    flex:1;
+    white-space:nowrap;
+    background:transparent;
+    border:none;
+    color:var(--muted);
+    font-family:'Vazirmatn';
+    font-size:12.5px;
+    font-weight:600;
+    padding:9px 10px;
+    border-radius:9px;
+    cursor:pointer;
+    transition:all .15s ease;
+  }
+  .subtab.active{
+    background:var(--glass-strong);
+    color:var(--accent);
+    box-shadow:0 1px 4px rgba(0,0,0,.12);
+  }
+
+  .bottom-tabbar{
+    position:fixed;
+    bottom:0; left:0; right:0;
+    display:flex;
+    justify-content:space-around;
+    background:rgba(255,255,255,.75);
+    backdrop-filter:blur(24px) saturate(180%);
+    -webkit-backdrop-filter:blur(24px) saturate(180%);
+    border-top:1px solid rgba(60,60,67,.1);
+    padding:8px 6px calc(8px + env(safe-area-inset-bottom));
+    z-index:50;
+  }
+  .tab-btn{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:3px;
+    background:none;
+    border:none;
+    color:var(--muted);
+    font-family:'Vazirmatn';
+    font-size:10.5px;
+    font-weight:600;
+    padding:4px 14px;
+    cursor:pointer;
+  }
+  .tab-btn svg{width:22px;height:22px;stroke:var(--muted);fill:none;stroke-width:1.8;}
+  .tab-btn.active{color:var(--accent);}
+  .tab-btn.active svg{stroke:var(--accent);}
+
   textarea{
     width:100%;
     background:rgba(120,120,128,.08);
@@ -308,14 +368,51 @@
   .journal-empty{color:var(--muted);font-size:13px;text-align:center;padding:20px 0;}
   details summary{cursor:pointer;font-size:12px;color:var(--accent);list-style:none;}
   details summary::-webkit-details-marker{display:none;}
+
+  .watch-entry{padding:14px 0;border-top:1px solid var(--hairline);}
+  .watch-entry:first-child{border-top:none;}
+  .watch-head{display:flex;justify-content:space-between;align-items:center;gap:8px;}
+  .watch-symbol{font-weight:700;font-size:14.5px;}
+  .watch-badge{
+    font-family:'Space Mono',monospace;
+    font-size:10px;
+    font-weight:700;
+    padding:3px 8px;
+    border-radius:6px;
+    margin-right:6px;
+  }
+  .watch-badge.high{background:rgba(255,59,48,.12);color:#C22E24;}
+  .watch-badge.mid{background:rgba(255,159,10,.14);color:#B36B00;}
+  .watch-badge.low{background:rgba(52,199,89,.12);color:#1F8A3B;}
+  .watch-target{font-family:'Space Mono',monospace;font-size:13px;color:var(--muted);direction:ltr;}
+  .watch-note{font-size:12.5px;color:var(--muted);margin-top:6px;line-height:1.8;}
+  .watch-del{background:none;border:none;color:var(--red);font-size:11.5px;cursor:pointer;margin-top:8px;padding:0;font-family:'Vazirmatn';}
+
+  .alloc-row{padding:13px 0;border-top:1px solid var(--hairline);}
+  .alloc-row:first-child{border-top:none;}
+  .alloc-head{display:flex;justify-content:space-between;align-items:baseline;font-size:13.5px;}
+  .alloc-name{font-weight:700;}
+  .alloc-cat{font-size:11px;color:var(--muted);margin-right:6px;}
+  .alloc-pct{font-family:'Space Mono',monospace;font-weight:700;direction:ltr;}
+  .alloc-val{font-family:'Space Mono',monospace;font-size:11.5px;color:var(--muted);direction:ltr;margin-top:2px;}
+  .alloc-bar-track{height:4px;background:var(--track);border-radius:2px;margin-top:8px;overflow:hidden;}
+  .alloc-bar-fill{height:100%;background:var(--accent);border-radius:2px;}
+  .alloc-del{background:none;border:none;color:var(--red);font-size:11.5px;cursor:pointer;margin-top:8px;padding:0;font-family:'Vazirmatn';}
 </style>
 </head>
 <body>
 <div class="app">
-  <p class="eyebrow">Risk · Position Size</p>
-  <h1>TradePilot</h1>
-  <p class="sub">سرمایه، درصد ریسک، حد ضرر و لوریج رو بده تا بگم دقیقاً چقدر از سرمایه‌ت باید وارد معامله بشه.</p>
+  <p class="eyebrow" id="pageEyebrow">Risk · Position Size</p>
+  <h1 id="pageTitle">TradePilot</h1>
+  <p class="sub" id="pageSub">سرمایه، درصد ریسک، حد ضرر و لوریج رو بده تا بگم دقیقاً چقدر از سرمایه‌ت باید وارد معامله بشه.</p>
 
+  <div class="menu-panel" data-menu="capital">
+    <div class="subnav">
+      <button class="subtab active" data-menu="capital" data-sub="calc">محاسبه‌گر</button>
+      <button class="subtab" data-menu="capital" data-sub="daily">ریسک روزانه/هفتگی</button>
+    </div>
+
+    <div class="sub-panel" data-menu="capital" data-sub="calc">
   <div class="card">
     <p class="section-label">ورودی‌ها</p>
 
@@ -406,7 +503,9 @@
     <p style="margin:0 0 4px"><b>حد سود</b> = حد ضرر × Risk/Reward</p>
     <p style="margin:0"><b>سود مورد انتظار</b> = مبلغ ریسک × Risk/Reward</p>
   </div>
+    </div><!-- /sub-panel calc -->
 
+    <div class="sub-panel" data-menu="capital" data-sub="daily" style="display:none;">
   <div class="card">
     <p class="section-label">مدیریت ریسک روزانه و هفتگی</p>
 
@@ -455,13 +554,17 @@
       <button class="preset-btn" id="resetWeeklyBtn" style="padding:9px 0;">ریست این هفته</button>
     </div>
   </div>
+    </div><!-- /sub-panel daily -->
+  </div><!-- /menu-panel capital -->
 
+  <div class="menu-panel" data-menu="journal" style="display:none;">
+    <div class="subnav">
+      <button class="subtab active" data-menu="journal" data-sub="entry">ثبت معامله</button>
+      <button class="subtab" data-menu="journal" data-sub="performance">عملکرد</button>
+      <button class="subtab" data-menu="journal" data-sub="history">تاریخچه</button>
+    </div>
 
-  <div class="section-divider"></div>
-  <p class="eyebrow">Trade Journal</p>
-  <p class="section-title">ژورنال معاملات</p>
-  <p class="section-sub">هر معامله رو با دلیل، احساس، و نتیجه‌اش ثبت کن تا الگوهای رفتاری و اشتباهات تکراری‌ت مشخص بشن.</p>
-
+    <div class="sub-panel" data-menu="journal" data-sub="entry">
   <div class="card">
     <p class="section-label">ثبت معامله جدید</p>
 
@@ -520,7 +623,9 @@
 
     <button id="addJournalBtn" style="width:100%;margin-top:16px;background:var(--accent);color:#fff;border:none;border-radius:14px;padding:14px 0;font-family:'Vazirmatn';font-size:14.5px;font-weight:700;cursor:pointer;">ثبت معامله</button>
   </div>
+    </div><!-- /sub-panel entry -->
 
+    <div class="sub-panel" data-menu="journal" data-sub="performance" style="display:none;">
   <div class="card">
     <p class="section-label">آمار کلی</p>
     <div class="grid2">
@@ -570,16 +675,132 @@
       <div class="result-sub" style="margin-top:6px;">منحنی تجمعی سود/زیان (Equity Curve)</div>
     </div>
   </div>
+    </div><!-- /sub-panel performance -->
 
+    <div class="sub-panel" data-menu="journal" data-sub="history" style="display:none;">
   <div class="card">
     <p class="section-label">تاریخچه معاملات</p>
     <div id="journalList"></div>
+  </div>
+    </div><!-- /sub-panel history -->
+  </div><!-- /menu-panel journal -->
+
+  <div class="menu-panel" data-menu="watchlist" style="display:none;">
+    <div class="card">
+      <p class="section-label">افزودن نماد جدید</p>
+
+      <div class="field">
+        <div class="field-row"><span class="field-name">نماد / دارایی</span></div>
+        <input type="text" id="wSymbol" placeholder="مثلاً ETHUSDT" style="font-size:16px;">
+      </div>
+
+      <div class="field">
+        <div class="field-row"><span class="field-name">اولویت</span></div>
+        <div class="presets">
+          <button type="button" class="preset-btn wprio active" data-p="high">بالا</button>
+          <button type="button" class="preset-btn wprio" data-p="mid">متوسط</button>
+          <button type="button" class="preset-btn wprio" data-p="low">پایین</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field-row"><span class="field-name">قیمت هدف (یادداشت شخصی، غیرخودکار)</span></div>
+        <input type="number" id="wTarget" placeholder="اختیاری" step="any" inputmode="decimal">
+      </div>
+
+      <div class="field" style="margin-bottom:0;">
+        <div class="field-row"><span class="field-name">یادداشت</span></div>
+        <textarea id="wNote" placeholder="چرا زیر نظرشه؟"></textarea>
+      </div>
+
+      <button id="addWatchBtn" style="width:100%;margin-top:16px;background:var(--accent);color:#fff;border:none;border-radius:14px;padding:14px 0;font-family:'Vazirmatn';font-size:14.5px;font-weight:700;cursor:pointer;">افزودن به واچ‌لیست</button>
+    </div>
+
+    <div class="card">
+      <p class="section-label">واچ‌لیست من</p>
+      <div id="watchList"></div>
+    </div>
+  </div>
+
+  <div class="menu-panel" data-menu="portfolio" style="display:none;">
+    <div class="card">
+      <p class="section-label">افزودن دارایی به پرتفوی</p>
+
+      <div class="field">
+        <div class="field-row"><span class="field-name">نماد / دارایی</span></div>
+        <input type="text" id="pSymbol" placeholder="مثلاً BTC" style="font-size:16px;">
+      </div>
+
+      <div class="field">
+        <div class="field-row"><span class="field-name">دسته</span></div>
+        <select id="pCategory">
+          <option value="کریپتو">کریپتو</option>
+          <option value="سهام">سهام</option>
+          <option value="فارکس">فارکس</option>
+          <option value="طلا / کالا">طلا / کالا</option>
+          <option value="سایر">سایر</option>
+        </select>
+      </div>
+
+      <div class="field" style="margin-bottom:0;">
+        <div class="field-row"><span class="field-name">ارزش فعلی این دارایی</span></div>
+        <input type="number" id="pValue" placeholder="مثلاً 500" min="0" step="1" inputmode="decimal">
+      </div>
+
+      <button id="addHoldingBtn" style="width:100%;margin-top:16px;background:var(--accent);color:#fff;border:none;border-radius:14px;padding:14px 0;font-family:'Vazirmatn';font-size:14.5px;font-weight:700;cursor:pointer;">افزودن به پرتفوی</button>
+    </div>
+
+    <div class="card">
+      <p class="section-label">خلاصه پرتفوی</p>
+      <div class="grid2">
+        <div class="mini">
+          <div class="k">ارزش کل پرتفوی</div>
+          <div class="v" id="pTotalOut">0</div>
+        </div>
+        <div class="mini">
+          <div class="k">تعداد دارایی</div>
+          <div class="v" id="pCountOut">۰</div>
+        </div>
+        <div class="mini">
+          <div class="k">بزرگ‌ترین تمرکز</div>
+          <div class="v" id="pMaxOut">۰٪</div>
+        </div>
+        <div class="mini">
+          <div class="k">وضعیت تنوع</div>
+          <div class="v" id="pDivOut" style="font-size:13px;">—</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <p class="section-label">تخصیص دارایی‌ها</p>
+      <div id="portfolioList"></div>
+    </div>
   </div>
 
   <p class="install-hint">
     برای نصب به‌عنوان اپ: این صفحه رو روی یک دامنه (مثلاً GitHub Pages) قرار بده — مرورگر گزینه «افزودن به صفحه اصلی» رو نشون می‌ده.
   </p>
 </div>
+
+<nav class="bottom-tabbar">
+  <button class="tab-btn active" data-menu="capital">
+    <svg viewBox="0 0 24 24"><path d="M12 2 4 5v6c0 5 3.4 8.7 8 9 4.6-.3 8-4 8-9V5l-8-3z"/></svg>
+    <span>مدیریت سرمایه</span>
+  </button>
+  <button class="tab-btn" data-menu="journal">
+    <svg viewBox="0 0 24 24"><path d="M6 3h11a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M8 8h7M8 12h7M8 16h4"/></svg>
+    <span>ژورنال</span>
+  </button>
+  <button class="tab-btn" data-menu="watchlist">
+    <svg viewBox="0 0 24 24"><path d="M12 17.3 6.2 20.5l1.1-6.5L2.6 9.3l6.5-.9L12 2.5l2.9 5.9 6.5.9-4.7 4.7 1.1 6.5z"/></svg>
+    <span>واچ‌لیست</span>
+  </button>
+  <button class="tab-btn" data-menu="portfolio">
+    <svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-9-9"/><path d="M21 12 12 12 12 3"/><path d="M12 12 5.6 18.4"/></svg>
+    <span>پرتفوی</span>
+  </button>
+</nav>
 
 <script>
 const capital = document.getElementById('capital');
@@ -1043,6 +1264,234 @@ addJournalBtn.addEventListener('click', ()=>{
 });
 
 renderJournal();
+
+/* ---------- Watchlist ---------- */
+const wSymbol = document.getElementById('wSymbol');
+const wTarget = document.getElementById('wTarget');
+const wNote = document.getElementById('wNote');
+const addWatchBtn = document.getElementById('addWatchBtn');
+const watchList = document.getElementById('watchList');
+
+const WATCHLIST_KEY = 'tradepilot_watchlist';
+let watchPriority = 'high';
+const PRIO_LABEL = {high:'بالا', mid:'متوسط', low:'پایین'};
+const PRIO_ORDER = {high:0, mid:1, low:2};
+
+document.querySelectorAll('.wprio').forEach(b=>{
+  b.addEventListener('click', ()=>{
+    watchPriority = b.dataset.p;
+    document.querySelectorAll('.wprio').forEach(x=>x.classList.toggle('active', x === b));
+  });
+});
+
+function loadWatchlist(){
+  try{ return JSON.parse(localStorage.getItem(WATCHLIST_KEY)) || []; }
+  catch(e){ return []; }
+}
+function saveWatchlist(list){
+  try{ localStorage.setItem(WATCHLIST_KEY, JSON.stringify(list)); }catch(e){}
+}
+
+function renderWatchlist(){
+  const list = loadWatchlist();
+  if (!list.length){
+    watchList.innerHTML = '<div class="journal-empty">هنوز نمادی اضافه نکردی.</div>';
+    return;
+  }
+  const sorted = list.slice().sort((a,b)=> PRIO_ORDER[a.priority] - PRIO_ORDER[b.priority] || b.ts - a.ts);
+  watchList.innerHTML = sorted.map(e => `
+    <div class="watch-entry">
+      <div class="watch-head">
+        <div>
+          <span class="watch-badge ${e.priority}">${PRIO_LABEL[e.priority]}</span>
+          <span class="watch-symbol">${escapeHtml(e.symbol)}</span>
+        </div>
+        ${e.target ? `<span class="watch-target">${fmt(e.target)}</span>` : ''}
+      </div>
+      ${e.note ? `<div class="watch-note">${escapeHtml(e.note)}</div>` : ''}
+      <button class="watch-del" data-id="${e.id}">حذف</button>
+    </div>
+  `).join('');
+
+  watchList.querySelectorAll('.watch-del').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const id = btn.dataset.id;
+      saveWatchlist(loadWatchlist().filter(e => String(e.id) !== id));
+      renderWatchlist();
+    });
+  });
+}
+
+addWatchBtn.addEventListener('click', ()=>{
+  const symbol = wSymbol.value.trim();
+  if (!symbol){ wSymbol.focus(); return; }
+  const entry = {
+    id: Date.now(),
+    ts: Date.now(),
+    symbol,
+    priority: watchPriority,
+    target: parseFloat(wTarget.value) || 0,
+    note: wNote.value.trim()
+  };
+  const list = loadWatchlist();
+  list.push(entry);
+  saveWatchlist(list);
+
+  wSymbol.value = '';
+  wTarget.value = '';
+  wNote.value = '';
+  renderWatchlist();
+});
+
+renderWatchlist();
+
+/* ---------- Portfolio ---------- */
+const pSymbol = document.getElementById('pSymbol');
+const pCategory = document.getElementById('pCategory');
+const pValue = document.getElementById('pValue');
+const addHoldingBtn = document.getElementById('addHoldingBtn');
+const portfolioList = document.getElementById('portfolioList');
+
+const pTotalOut = document.getElementById('pTotalOut');
+const pCountOut = document.getElementById('pCountOut');
+const pMaxOut = document.getElementById('pMaxOut');
+const pDivOut = document.getElementById('pDivOut');
+
+const PORTFOLIO_KEY = 'tradepilot_portfolio';
+
+function loadPortfolio(){
+  try{ return JSON.parse(localStorage.getItem(PORTFOLIO_KEY)) || []; }
+  catch(e){ return []; }
+}
+function savePortfolio(list){
+  try{ localStorage.setItem(PORTFOLIO_KEY, JSON.stringify(list)); }catch(e){}
+}
+
+function renderPortfolio(){
+  const list = loadPortfolio();
+  const total = list.reduce((s,h)=> s + h.value, 0);
+
+  pTotalOut.textContent = fmt(total);
+  pCountOut.textContent = faNum(list.length);
+
+  if (!list.length || total <= 0){
+    pMaxOut.textContent = '۰٪';
+    pDivOut.textContent = '—';
+    pDivOut.style.color = 'var(--ink)';
+    portfolioList.innerHTML = '<div class="journal-empty">هنوز دارایی‌ای اضافه نکردی.</div>';
+    return;
+  }
+
+  const withPct = list.map(h => ({...h, pct: (h.value/total)*100}));
+  const maxPct = Math.max(...withPct.map(h=>h.pct));
+  pMaxOut.textContent = faPct(maxPct);
+
+  const hhi = withPct.reduce((s,h)=> s + Math.pow(h.pct/100, 2), 0) * 10000;
+  let divLabel, divColor;
+  if (hhi > 4000){ divLabel = 'خیلی متمرکز'; divColor = '#FF3B30'; }
+  else if (hhi > 2500){ divLabel = 'نسبتاً متمرکز'; divColor = '#FF9F0A'; }
+  else if (hhi > 1500){ divLabel = 'متعادل'; divColor = '#0A84FF'; }
+  else { divLabel = 'متنوع'; divColor = '#34C759'; }
+  pDivOut.textContent = divLabel;
+  pDivOut.style.color = divColor;
+
+  const sorted = withPct.slice().sort((a,b)=> b.pct - a.pct);
+  portfolioList.innerHTML = sorted.map(h => `
+    <div class="alloc-row">
+      <div class="alloc-head">
+        <div>
+          <span class="alloc-name">${escapeHtml(h.symbol)}</span>
+          <span class="alloc-cat">${escapeHtml(h.category)}</span>
+        </div>
+        <span class="alloc-pct">${fmt(h.pct)}٪</span>
+      </div>
+      <div class="alloc-val">${fmt(h.value)}</div>
+      <div class="alloc-bar-track"><div class="alloc-bar-fill" style="width:${Math.min(h.pct,100)}%;"></div></div>
+      <button class="alloc-del" data-id="${h.id}">حذف</button>
+    </div>
+  `).join('');
+
+  portfolioList.querySelectorAll('.alloc-del').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const id = btn.dataset.id;
+      savePortfolio(loadPortfolio().filter(h => String(h.id) !== id));
+      renderPortfolio();
+    });
+  });
+}
+
+addHoldingBtn.addEventListener('click', ()=>{
+  const symbol = pSymbol.value.trim();
+  const value = parseFloat(pValue.value);
+  if (!symbol || !value || value <= 0){ pSymbol.focus(); return; }
+  const holding = {
+    id: Date.now(),
+    symbol,
+    category: pCategory.value,
+    value
+  };
+  const list = loadPortfolio();
+  list.push(holding);
+  savePortfolio(list);
+
+  pSymbol.value = '';
+  pValue.value = '';
+  renderPortfolio();
+});
+
+renderPortfolio();
+const pageEyebrow = document.getElementById('pageEyebrow');
+const pageTitle = document.getElementById('pageTitle');
+const pageSub = document.getElementById('pageSub');
+
+const MENU_META = {
+  capital: {
+    eyebrow: 'Risk · Position Size',
+    sub: 'سرمایه، درصد ریسک، حد ضرر و لوریج رو بده تا بگم دقیقاً چقدر از سرمایه‌ت باید وارد معامله بشه.'
+  },
+  journal: {
+    eyebrow: 'Trade Journal',
+    sub: 'هر معامله رو با دلیل، احساس، و نتیجه‌اش ثبت کن تا الگوهای رفتاری و اشتباهات تکراری‌ت مشخص بشن.'
+  },
+  watchlist: {
+    eyebrow: 'Watchlist',
+    sub: 'دارایی‌هایی که زیر نظر داری رو با اولویت و یادداشت شخصی ثبت کن.'
+  },
+  portfolio: {
+    eyebrow: 'Portfolio',
+    sub: 'دارایی‌های واقعی‌ات رو وارد کن تا تخصیص و میزان تمرکز پرتفوی‌ت رو ببینی.'
+  }
+};
+
+function setActiveMenu(menuName){
+  document.querySelectorAll('.menu-panel').forEach(p=>{
+    p.style.display = (p.dataset.menu === menuName) ? '' : 'none';
+  });
+  document.querySelectorAll('.tab-btn').forEach(b=>{
+    b.classList.toggle('active', b.dataset.menu === menuName);
+  });
+  const meta = MENU_META[menuName];
+  if (meta){
+    pageEyebrow.textContent = meta.eyebrow;
+    pageSub.textContent = meta.sub;
+  }
+}
+
+function setActiveSub(menuName, subName){
+  document.querySelectorAll(`.sub-panel[data-menu="${menuName}"]`).forEach(p=>{
+    p.style.display = (p.dataset.sub === subName) ? '' : 'none';
+  });
+  document.querySelectorAll(`.subtab[data-menu="${menuName}"]`).forEach(b=>{
+    b.classList.toggle('active', b.dataset.sub === subName);
+  });
+}
+
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=> setActiveMenu(btn.dataset.menu));
+});
+document.querySelectorAll('.subtab').forEach(btn=>{
+  btn.addEventListener('click', ()=> setActiveSub(btn.dataset.menu, btn.dataset.sub));
+});
 </script>
 </body>
 </html>
