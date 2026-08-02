@@ -447,118 +447,41 @@
     font-family:'Space Mono',monospace;
   }
   .vault-del{background:none;border:none;color:var(--red);font-size:11.5px;cursor:pointer;margin-top:8px;padding:0;font-family:'Vazirmatn';}
+
+  .locked-card{opacity:.75;}
+  .locked-badge{
+    display:inline-flex;
+    align-items:center;
+    gap:5px;
+    font-size:10.5px;
+    color:var(--muted);
+    background:rgba(120,120,128,.12);
+    padding:3px 9px;
+    border-radius:7px;
+    font-family:'Space Mono',monospace;
+    margin-bottom:10px;
+  }
+  .locked-badge svg{width:11px;height:11px;stroke:var(--muted);fill:none;stroke-width:2;}
+  .locked-desc{font-size:12px;color:var(--muted);line-height:1.8;}
+
+  .preview-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:10px 0;
+    border-top:1px solid var(--hairline);
+    font-size:13px;
+  }
+  .preview-row:first-child{border-top:none;}
+  .preview-name{font-weight:700;}
+  .preview-meta{font-family:'Space Mono',monospace;font-size:12px;color:var(--muted);direction:ltr;}
 </style>
 </head>
 <body>
 <div class="app">
   <p class="eyebrow" id="pageEyebrow">Dashboard</p>
   <h1 id="pageTitle">TradePilot</h1>
-  <p class="sub" id="pageSub">خلاصه‌ای از عملکرد و الگوهای معاملاتی‌ات، بر اساس ژورنالی که ثبت کردی.</p>
-
-  <div class="menu-panel" data-menu="dashboard">
-    <div class="subnav">
-      <button class="subtab active" data-menu="dashboard" data-sub="overview">خلاصه</button>
-      <button class="subtab" data-menu="dashboard" data-sub="reports">گزارش‌ها</button>
-    </div>
-
-    <div class="sub-panel" data-menu="dashboard" data-sub="overview">
-    <div class="card">
-      <p class="section-label">خلاصه سریع</p>
-      <div class="grid2">
-        <div class="mini">
-          <div class="k">تعداد معاملات</div>
-          <div class="v" id="dCountOut">۰</div>
-        </div>
-        <div class="mini">
-          <div class="k">Win Rate</div>
-          <div class="v" id="dWinRateOut">۰٪</div>
-        </div>
-        <div class="mini">
-          <div class="k">سود/زیان خالص</div>
-          <div class="v" id="dNetOut">0</div>
-        </div>
-        <div class="mini">
-          <div class="k">روند اخیر</div>
-          <div class="v" id="dTrendOut" style="font-size:13px;">—</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="card">
-      <p class="section-label">بهترین ساعت معامله</p>
-      <div class="result-main" id="dBestHourOut" style="font-size:26px;">—</div>
-      <div class="result-sub" id="dBestHourSub">هنوز داده‌ی کافی نیست</div>
-    </div>
-
-    <div class="card">
-      <p class="section-label">بهترین بازار / نماد</p>
-      <div class="result-main" id="dBestSymbolOut" style="font-size:26px;">—</div>
-      <div class="result-sub" id="dBestSymbolSub">هنوز داده‌ی کافی نیست</div>
-    </div>
-
-    <div class="card">
-      <p class="section-label">بهترین ستاپ</p>
-      <div class="result-main" id="dBestSetupOut" style="font-size:26px;">—</div>
-      <div class="result-sub" id="dBestSetupSub">هنوز داده‌ی کافی نیست</div>
-    </div>
-
-    <div class="card">
-      <p class="section-label">بدترین اشتباه (بزرگ‌ترین ضرر)</p>
-      <div class="result-main" id="dWorstOut" style="font-size:26px;color:var(--red);">—</div>
-      <div class="result-sub" id="dWorstSub">هنوز داده‌ی کافی نیست</div>
-      <div class="journal-details" id="dWorstLesson"></div>
-    </div>
-    </div><!-- /sub-panel overview -->
-
-    <div class="sub-panel" data-menu="dashboard" data-sub="reports" style="display:none;">
-      <div class="card">
-        <div class="presets">
-          <button type="button" class="preset-btn rperiod active" data-period="day">امروز</button>
-          <button type="button" class="preset-btn rperiod" data-period="week">این هفته</button>
-          <button type="button" class="preset-btn rperiod" data-period="month">این ماه</button>
-        </div>
-      </div>
-
-      <div class="card">
-        <p class="section-label">گزارش عملکرد</p>
-        <div class="grid2">
-          <div class="mini">
-            <div class="k">تعداد معاملات</div>
-            <div class="v" id="rCountOut">۰</div>
-          </div>
-          <div class="mini">
-            <div class="k">Win Rate</div>
-            <div class="v" id="rWinRateOut">۰٪</div>
-          </div>
-          <div class="mini">
-            <div class="k">سود/زیان خالص</div>
-            <div class="v" id="rNetOut">0</div>
-          </div>
-          <div class="mini">
-            <div class="k">نمادهای معامله‌شده</div>
-            <div class="v" id="rSymbolsOut" style="font-size:12.5px;">—</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="card">
-        <p class="section-label">بهترین و بدترین معامله</p>
-        <div class="stat-row" style="border-top:none;padding-top:0;">
-          <span class="k">بهترین معامله</span>
-          <span class="v green" id="rBestTradeOut">—</span>
-        </div>
-        <div class="stat-row">
-          <span class="k">بدترین معامله</span>
-          <span class="v red" id="rWorstTradeOut">—</span>
-        </div>
-      </div>
-
-      <div class="card">
-        <p class="section-label">خلاصه‌ی متنی</p>
-        <div class="journal-details" id="rSummaryText" style="margin-top:0;">—</div>
-      </div>
-    </div><!-- /sub-panel reports -->
-  </div>
+  <p class="sub" id="pageSub">یه نگاه کلی به بازار، اخبار، و وضعیت واچ‌لیست و پرتفوی‌ت.</p>
 
   <div class="menu-panel" data-menu="capital" style="display:none;">
     <div class="subnav">
@@ -711,16 +634,174 @@
     </div><!-- /sub-panel daily -->
   </div><!-- /menu-panel capital -->
 
+  <div class="menu-panel" data-menu="dashboard">
+    <div class="card" style="background:rgba(10,132,255,.08);border-color:rgba(10,132,255,.2);">
+      <p class="locked-desc" style="margin:0;">بخش‌هایی که علامت «نیاز به اتصال» دارن، به داده‌ی زنده‌ی بازار/اخبار نیاز دارن که فعلاً بهش وصل نیستیم. Watchlist و پرتفوی چون داده‌ی خودتونه، همین الان کار می‌کنن.</p>
+    </div>
+
+    <div class="card">
+      <p class="section-label">وضعیت کلی بازار</p>
+      <span class="locked-badge">
+        <svg viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+        نیاز به اتصال
+      </span>
+      <div class="locked-desc">Risk-On / Risk-Off و AI Market Score نیاز به داده‌ی زنده‌ی شاخص‌ها و بازارها دارن.</div>
+    </div>
+
+    <div class="card">
+      <p class="section-label">خلاصه وضعیت بازارها</p>
+      <span class="locked-badge">
+        <svg viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+        نیاز به اتصال
+      </span>
+      <div class="locked-desc">قیمت و روند لحظه‌ای بازارهای اصلی (کریپتو، فارکس، سهام) نیاز به API قیمت زنده داره.</div>
+    </div>
+
+    <div class="card">
+      <p class="section-label">اخبار مهم</p>
+      <span class="locked-badge">
+        <svg viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+        نیاز به اتصال
+      </span>
+      <div class="locked-desc">خلاصه‌ی خبر، اثرش روی هر دارایی، اهمیت، زمان انتشار، و تحلیل خودکار — نیاز به فید خبری زنده داره.</div>
+    </div>
+
+    <div class="card">
+      <p class="section-label">رویدادهای اقتصادی امروز</p>
+      <span class="locked-badge">
+        <svg viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+        نیاز به اتصال
+      </span>
+      <div class="locked-desc">تقویم اقتصادی نیاز به یک سرویس داده‌ی رویدادهای مالی داره.</div>
+    </div>
+
+    <div class="card">
+      <p class="section-label">احساسات بازار</p>
+      <span class="locked-badge">
+        <svg viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+        نیاز به اتصال
+      </span>
+      <div class="locked-desc">Fear & Greed، تحلیل شبکه‌های اجتماعی، رفتار معامله‌گران خرد و تشخیص هیجان بازار — نیاز به منابع داده‌ی بیرونی دارن.</div>
+    </div>
+
+    <div class="card">
+      <p class="section-label">Watchlist شخصی</p>
+      <div id="dashWatchPreview"></div>
+    </div>
+
+    <div class="card">
+      <p class="section-label">خلاصه وضعیت پرتفوی</p>
+      <div id="dashPortfolioPreview"></div>
+    </div>
+  </div>
+
   <div class="menu-panel" data-menu="journal" style="display:none;">
     <div class="subnav">
-      <button class="subtab active" data-menu="journal" data-sub="entry">ثبت معامله</button>
+      <button class="subtab active" data-menu="journal" data-sub="dashboard">داشبورد</button>
+      <button class="subtab" data-menu="journal" data-sub="entry">ثبت معامله</button>
       <button class="subtab" data-menu="journal" data-sub="performance">عملکرد</button>
       <button class="subtab" data-menu="journal" data-sub="history">تاریخچه</button>
       <button class="subtab" data-menu="journal" data-sub="strategies">استراتژی‌ها</button>
       <button class="subtab" data-menu="journal" data-sub="psychology">روان‌شناسی</button>
     </div>
 
-    <div class="sub-panel" data-menu="journal" data-sub="entry">
+    <div class="sub-panel" data-menu="journal" data-sub="dashboard">
+    <div class="card">
+      <p class="section-label">خلاصه سریع</p>
+      <div class="grid2">
+        <div class="mini">
+          <div class="k">تعداد معاملات</div>
+          <div class="v" id="dCountOut">۰</div>
+        </div>
+        <div class="mini">
+          <div class="k">Win Rate</div>
+          <div class="v" id="dWinRateOut">۰٪</div>
+        </div>
+        <div class="mini">
+          <div class="k">سود/زیان خالص</div>
+          <div class="v" id="dNetOut">0</div>
+        </div>
+        <div class="mini">
+          <div class="k">روند اخیر</div>
+          <div class="v" id="dTrendOut" style="font-size:13px;">—</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <p class="section-label">بهترین ساعت معامله</p>
+      <div class="result-main" id="dBestHourOut" style="font-size:26px;">—</div>
+      <div class="result-sub" id="dBestHourSub">هنوز داده‌ی کافی نیست</div>
+    </div>
+
+    <div class="card">
+      <p class="section-label">بهترین بازار / نماد</p>
+      <div class="result-main" id="dBestSymbolOut" style="font-size:26px;">—</div>
+      <div class="result-sub" id="dBestSymbolSub">هنوز داده‌ی کافی نیست</div>
+    </div>
+
+    <div class="card">
+      <p class="section-label">بهترین ستاپ</p>
+      <div class="result-main" id="dBestSetupOut" style="font-size:26px;">—</div>
+      <div class="result-sub" id="dBestSetupSub">هنوز داده‌ی کافی نیست</div>
+    </div>
+
+    <div class="card">
+      <p class="section-label">بدترین اشتباه (بزرگ‌ترین ضرر)</p>
+      <div class="result-main" id="dWorstOut" style="font-size:26px;color:var(--red);">—</div>
+      <div class="result-sub" id="dWorstSub">هنوز داده‌ی کافی نیست</div>
+      <div class="journal-details" id="dWorstLesson"></div>
+    </div>
+
+    <div class="card">
+      <div class="presets">
+        <button type="button" class="preset-btn rperiod active" data-period="day">امروز</button>
+        <button type="button" class="preset-btn rperiod" data-period="week">این هفته</button>
+        <button type="button" class="preset-btn rperiod" data-period="month">این ماه</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <p class="section-label">گزارش عملکرد</p>
+      <div class="grid2">
+        <div class="mini">
+          <div class="k">تعداد معاملات</div>
+          <div class="v" id="rCountOut">۰</div>
+        </div>
+        <div class="mini">
+          <div class="k">Win Rate</div>
+          <div class="v" id="rWinRateOut">۰٪</div>
+        </div>
+        <div class="mini">
+          <div class="k">سود/زیان خالص</div>
+          <div class="v" id="rNetOut">0</div>
+        </div>
+        <div class="mini">
+          <div class="k">نمادهای معامله‌شده</div>
+          <div class="v" id="rSymbolsOut" style="font-size:12.5px;">—</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <p class="section-label">بهترین و بدترین معامله (بازه‌ی انتخابی)</p>
+      <div class="stat-row" style="border-top:none;padding-top:0;">
+        <span class="k">بهترین معامله</span>
+        <span class="v green" id="rBestTradeOut">—</span>
+      </div>
+      <div class="stat-row">
+        <span class="k">بدترین معامله</span>
+        <span class="v red" id="rWorstTradeOut">—</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <p class="section-label">خلاصه‌ی متنی</p>
+      <div class="journal-details" id="rSummaryText" style="margin-top:0;">—</div>
+    </div>
+    </div><!-- /sub-panel dashboard -->
+
+    <div class="sub-panel" data-menu="journal" data-sub="entry" style="display:none;">
   <div class="card">
     <p class="section-label">ثبت معامله جدید</p>
 
@@ -1631,6 +1712,7 @@ function renderWatchlist(){
       const id = btn.dataset.id;
       saveWatchlist(loadWatchlist().filter(e => String(e.id) !== id));
       renderWatchlist();
+      if (typeof renderDashboardPreviews === 'function') renderDashboardPreviews();
     });
   });
 }
@@ -1654,6 +1736,7 @@ addWatchBtn.addEventListener('click', ()=>{
   wTarget.value = '';
   wNote.value = '';
   renderWatchlist();
+  if (typeof renderDashboardPreviews === 'function') renderDashboardPreviews();
 });
 
 renderWatchlist();
@@ -1729,6 +1812,7 @@ function renderPortfolio(){
       const id = btn.dataset.id;
       savePortfolio(loadPortfolio().filter(h => String(h.id) !== id));
       renderPortfolio();
+      if (typeof renderDashboardPreviews === 'function') renderDashboardPreviews();
     });
   });
 }
@@ -1750,6 +1834,7 @@ addHoldingBtn.addEventListener('click', ()=>{
   pSymbol.value = '';
   pValue.value = '';
   renderPortfolio();
+  if (typeof renderDashboardPreviews === 'function') renderDashboardPreviews();
 });
 
 renderPortfolio();
@@ -2218,6 +2303,49 @@ addVaultBtn.addEventListener('click', ()=>{
 vSearch.addEventListener('input', renderVault);
 
 renderVault();
+
+/* ---------- Dashboard previews (Watchlist + Portfolio) ---------- */
+const dashWatchPreview = document.getElementById('dashWatchPreview');
+const dashPortfolioPreview = document.getElementById('dashPortfolioPreview');
+
+function renderDashboardPreviews(){
+  const watch = loadWatchlist();
+  if (!watch.length){
+    dashWatchPreview.innerHTML = '<div class="journal-empty">واچ‌لیستت خالیه.</div>';
+  } else {
+    const top = watch.slice().sort((a,b)=> PRIO_ORDER[a.priority]-PRIO_ORDER[b.priority] || b.ts-a.ts).slice(0,4);
+    dashWatchPreview.innerHTML = top.map(w => `
+      <div class="preview-row">
+        <span class="preview-name">${escapeHtml(w.symbol)}</span>
+        <span class="watch-badge ${w.priority}">${PRIO_LABEL[w.priority]}</span>
+      </div>
+    `).join('');
+  }
+
+  const holdings = loadPortfolio();
+  const total = holdings.reduce((s,h)=>s+h.value,0);
+  if (!holdings.length || total <= 0){
+    dashPortfolioPreview.innerHTML = '<div class="journal-empty">هنوز دارایی‌ای وارد پرتفوی نکردی.</div>';
+  } else {
+    const top = holdings.slice().sort((a,b)=> b.value-a.value)[0];
+    dashPortfolioPreview.innerHTML = `
+      <div class="preview-row">
+        <span class="preview-name">ارزش کل</span>
+        <span class="preview-meta">${fmt(total)}</span>
+      </div>
+      <div class="preview-row">
+        <span class="preview-name">بزرگ‌ترین دارایی</span>
+        <span class="preview-meta">${escapeHtml(top.symbol)} (${fmt((top.value/total)*100)}٪)</span>
+      </div>
+      <div class="preview-row">
+        <span class="preview-name">تعداد دارایی</span>
+        <span class="preview-meta">${faNum(holdings.length)}</span>
+      </div>
+    `;
+  }
+}
+
+renderDashboardPreviews();
 const pageEyebrow = document.getElementById('pageEyebrow');
 const pageTitle = document.getElementById('pageTitle');
 const pageSub = document.getElementById('pageSub');
@@ -2225,7 +2353,7 @@ const pageSub = document.getElementById('pageSub');
 const MENU_META = {
   dashboard: {
     eyebrow: 'Dashboard',
-    sub: 'خلاصه‌ای از عملکرد و الگوهای معاملاتی‌ات، بر اساس ژورنالی که ثبت کردی.'
+    sub: 'یه نگاه کلی به بازار، اخبار، و وضعیت واچ‌لیست و پرتفوی‌ت.'
   },
   capital: {
     eyebrow: 'Risk · Position Size',
