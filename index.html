@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>TradePilot | محاسبه‌گر حجم معامله</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#FFFFFF">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1C1C1E;
+    --muted:#8E8E93;
+    --accent:#0A84FF;
+    --green:#34C759;
+    --amber:#FF9F0A;
+    --red:#FF3B30;
+    --glass:rgba(255,255,255,.55);
+    --glass-strong:rgba(255,255,255,.75);
+    --hairline:rgba(60,60,67,.13);
+    --track:rgba(120,120,128,.16);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(700px 420px at 10% -8%, rgba(10,132,255,.10) 0%, transparent 60%),
+      radial-gradient(650px 420px at 100% 15%, rgba(10,132,255,.06) 0%, transparent 55%),
+      #FAFAFB;
+    color:var(--ink);
+    font-family:'Vazirmatn',Tahoma,sans-serif;
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    padding:44px 18px 70px;
+  }
+  .app{width:100%;max-width:420px;}
+
+  .eyebrow{
+    font-family:'Space Mono',monospace;
+    font-size:10.5px;
+    letter-spacing:.22em;
+    text-transform:uppercase;
+    margin:0 0 10px;
+    color:var(--accent);
+  }
+  h1{
+    font-size:28px;
+    font-weight:800;
+    margin:0 0 8px;
+    letter-spacing:-.01em;
+    color:var(--accent);
+  }
+  .sub{
+    color:var(--muted);
+    font-size:13.5px;
+    margin:0 0 30px;
+    line-height:1.8;
+    max-width:36ch;
+  }
+
+  .card{
+    background:rgba(255,255,255,.55);
+    backdrop-filter:blur(26px) saturate(180%);
+    -webkit-backdrop-filter:blur(26px) saturate(180%);
+    border:1px solid rgba(255,255,255,.7);
+    border-radius:26px;
+    padding:22px;
+    margin-bottom:16px;
+    box-shadow:0 12px 32px rgba(60,60,67,.08);
+  }
+
+  .section-label{
+    font-size:11px;
+    letter-spacing:.1em;
+    color:var(--muted);
+    text-transform:uppercase;
+    font-family:'Space Mono',monospace;
+    margin-bottom:18px;
+  }
+
+  .field{margin-bottom:18px;}
+  .field:last-child{margin-bottom:0;}
+  .field-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    margin-bottom:9px;
+  }
+  .field-name{font-size:14px;color:var(--ink);}
+  .field-val{
+    font-family:'Space Mono',monospace;
+    font-size:14.5px;
+    font-weight:700;
+    color:var(--accent);
+    direction:ltr;
+  }
+
+  input[type=number]{
+    width:100%;
+    background:rgba(120,120,128,.08);
+    border:1px solid rgba(255,255,255,.6);
+    border-radius:14px;
+    color:var(--ink);
+    font-family:'Space Mono',monospace;
+    font-size:24px;
+    font-weight:700;
+    padding:14px 16px;
+    outline:none;
+    text-align:left;
+    direction:ltr;
+  }
+  input[type=number]:focus{border-color:var(--accent);}
+
+  input[type=range]{
+    -webkit-appearance:none;
+    width:100%;
+    height:6px;
+    border-radius:3px;
+    background:var(--track);
+    outline:none;
+    margin-top:4px;
+  }
+  input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none;
+    width:22px;height:22px;
+    border-radius:50%;
+    background:#FFFFFF;
+    border:none;
+    box-shadow:0 2px 6px rgba(0,0,0,.22), 0 0 0 1px rgba(0,0,0,.04);
+    cursor:pointer;
+    margin-top:-8px;
+  }
+  input[type=range]::-moz-range-thumb{
+    width:22px;height:22px;border-radius:50%;
+    background:#FFFFFF; border:none;
+    box-shadow:0 2px 6px rgba(0,0,0,.22), 0 0 0 1px rgba(0,0,0,.04);
+    cursor:pointer;
+  }
+
+  .presets{
+    display:flex;
+    gap:2px;
+    margin-top:14px;
+    background:var(--track);
+    border-radius:12px;
+    padding:3px;
+  }
+  .preset-btn{
+    flex:1;
+    background:transparent;
+    border:none;
+    color:var(--muted);
+    font-family:'Space Mono',monospace;
+    font-size:12px;
+    padding:8px 0;
+    border-radius:9px;
+    cursor:pointer;
+    transition:all .15s ease;
+  }
+  .preset-btn.active{
+    background:var(--glass-strong);
+    color:var(--ink);
+    font-weight:700;
+    box-shadow:0 1px 4px rgba(0,0,0,.12);
+  }
+
+  .result-label{
+    font-size:11px;
+    letter-spacing:.1em;
+    color:var(--muted);
+    text-transform:uppercase;
+    font-family:'Space Mono',monospace;
+    margin-bottom:10px;
+  }
+  .result-main{
+    font-family:'Space Mono',monospace;
+    font-size:44px;
+    font-weight:700;
+    direction:ltr;
+    text-align:left;
+    line-height:1;
+    margin-bottom:6px;
+    color:var(--ink);
+  }
+  .result-sub{
+    color:var(--muted);
+    font-size:12.5px;
+    margin-bottom:24px;
+  }
+
+  /* stepped tick meter */
+  .meter{
+    display:flex;
+    gap:3px;
+    height:34px;
+    align-items:flex-end;
+    margin-bottom:10px;
+  }
+  .tick{
+    flex:1;
+    background:var(--track);
+    border-radius:3px;
+    transition:background .2s ease, height .2s ease, box-shadow .2s ease;
+  }
+  .meter-caption{
+    display:flex;
+    justify-content:space-between;
+    font-size:11.5px;
+    color:var(--muted);
+    font-family:'Space Mono',monospace;
+    margin-bottom:26px;
+  }
+  .meter-caption b{color:var(--ink);}
+
+  .stat-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    padding:13px 0;
+    border-top:1px solid var(--hairline);
+  }
+  .stat-row .k{font-size:13.5px;color:var(--muted);}
+  .stat-row .v{
+    font-family:'Space Mono',monospace;
+    font-size:15px;
+    font-weight:700;
+    direction:ltr;
+    color:var(--ink);
+  }
+  .v.red{color:var(--red);}
+
+  .formula{
+    font-size:12px;
+    color:var(--muted);
+    line-height:2;
+  }
+  .formula b{color:var(--ink);font-weight:600;}
+
+  .warn{
+    display:none;
+    font-size:12.5px;
+    color:#C22E24;
+    line-height:1.8;
+    margin-top:16px;
+    background:rgba(255,59,48,.1);
+    border:1px solid rgba(255,59,48,.22);
+    border-radius:14px;
+    padding:10px 12px;
+  }
+  .warn.show{display:block;}
+
+  .install-hint{
+    text-align:center;
+    font-size:11px;
+    color:var(--muted);
+    margin-top:30px;
+    line-height:1.9;
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <p class="eyebrow">Risk · Position Size</p>
+  <h1>TradePilot</h1>
+  <p class="sub">سرمایه، درصد ریسک، حد ضرر و لوریج رو بده تا بگم دقیقاً چقدر از سرمایه‌ت باید وارد معامله بشه.</p>
+
+  <div class="card">
+    <p class="section-label">ورودی‌ها</p>
+
+    <div class="field">
+      <div class="field-row">
+        <span class="field-name">سرمایه کل</span>
+      </div>
+      <input type="number" id="capital" value="1000" min="0" step="1" inputmode="decimal">
+    </div>
+
+    <div class="field">
+      <div class="field-row">
+        <span class="field-name">درصد ریسک از سرمایه</span>
+      </div>
+      <input type="number" id="risk" value="1" min="0" step="0.1" inputmode="decimal">
+    </div>
+
+    <div class="field">
+      <div class="field-row">
+        <span class="field-name">فاصله حد ضرر</span>
+      </div>
+      <input type="number" id="sl" value="2" min="0" step="0.1" inputmode="decimal">
+    </div>
+
+    <div class="field">
+      <div class="field-row">
+        <span class="field-name">Risk / Reward</span>
+      </div>
+      <input type="number" id="rr" value="2" min="0" step="0.1" inputmode="decimal">
+    </div>
+
+    <div class="field">
+      <div class="field-row">
+        <span class="field-name">حد سود</span>
+        <span class="field-val" style="color:var(--muted);font-weight:500;">محاسبه‌شده</span>
+      </div>
+      <div id="tpOut" style="width:100%;background:rgba(52,199,89,.1);border:1px solid rgba(52,199,89,.25);border-radius:14px;color:#28A745;font-family:'Space Mono',monospace;font-size:24px;font-weight:700;padding:14px 16px;text-align:left;direction:ltr;">0%</div>
+    </div>
+
+    <div class="field">
+      <div class="field-row">
+        <span class="field-name">لوریج</span>
+        <span class="field-val" id="levVal">10x</span>
+      </div>
+      <input type="range" id="lev" min="1" max="125" step="1" value="10">
+      <div class="presets">
+        <button class="preset-btn" data-v="1">1x</button>
+        <button class="preset-btn" data-v="5">5x</button>
+        <button class="preset-btn" data-v="10">10x</button>
+        <button class="preset-btn" data-v="20">20x</button>
+        <button class="preset-btn" data-v="50">50x</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <p class="result-label">سرمایه‌ای که باید وارد معامله کنی</p>
+    <div class="result-main" id="marginOut">0</div>
+    <div class="result-sub">مارجین لازم</div>
+
+    <div class="meter" id="meter"></div>
+    <div class="meter-caption">
+      <span>۰٪ سرمایه</span>
+      <b id="gaugePct">۰٪</b>
+      <span>۱۰۰٪ سرمایه</span>
+    </div>
+
+    <div class="stat-row">
+      <span class="k">حجم کل معامله</span>
+      <span class="v" id="posOut">0</span>
+    </div>
+    <div class="stat-row">
+      <span class="k">مبلغ ریسک واقعی</span>
+      <span class="v red" id="riskAmtOut">0</span>
+    </div>
+    <div class="stat-row">
+      <span class="k">سود مورد انتظار</span>
+      <span class="v" id="profitOut" style="color:#28A745;">0</span>
+    </div>
+
+    <div class="warn" id="warnBox"></div>
+  </div>
+
+  <div class="card formula">
+    <p style="margin:0 0 4px"><b>مبلغ ریسک</b> = سرمایه × درصد ریسک</p>
+    <p style="margin:0 0 4px"><b>حجم معامله</b> = مبلغ ریسک ÷ درصد حد ضرر</p>
+    <p style="margin:0 0 4px"><b>مارجین</b> = حجم معامله ÷ لوریج</p>
+    <p style="margin:0 0 4px"><b>حد سود</b> = حد ضرر × Risk/Reward</p>
+    <p style="margin:0"><b>سود مورد انتظار</b> = مبلغ ریسک × Risk/Reward</p>
+  </div>
+
+  <p class="install-hint">
+    برای نصب به‌عنوان اپ: این صفحه رو روی یک دامنه (مثلاً GitHub Pages) قرار بده — مرورگر گزینه «افزودن به صفحه اصلی» رو نشون می‌ده.
+  </p>
+</div>
+
+<script>
+const capital = document.getElementById('capital');
+const risk = document.getElementById('risk');
+const sl = document.getElementById('sl');
+const rr = document.getElementById('rr');
+const lev = document.getElementById('lev');
+
+const levVal = document.getElementById('levVal');
+
+const marginOut = document.getElementById('marginOut');
+const posOut = document.getElementById('posOut');
+const riskAmtOut = document.getElementById('riskAmtOut');
+const tpOut = document.getElementById('tpOut');
+const profitOut = document.getElementById('profitOut');
+const gaugePct = document.getElementById('gaugePct');
+const warnBox = document.getElementById('warnBox');
+const meter = document.getElementById('meter');
+
+const TICK_COUNT = 20;
+const ticks = [];
+for (let i = 0; i < TICK_COUNT; i++){
+  const t = document.createElement('div');
+  t.className = 'tick';
+  t.style.height = '14px';
+  meter.appendChild(t);
+  ticks.push(t);
+}
+
+function fmt(n){
+  if (!isFinite(n)) return '0';
+  return n.toLocaleString('en-US', {maximumFractionDigits: 2});
+}
+function faPct(n){
+  const digits = ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'];
+  return fmt(n).replace(/[0-9]/g, d => digits[d]) + '٪';
+}
+
+function paintSliderTrack(el, color){
+  const min = parseFloat(el.min), max = parseFloat(el.max), val = parseFloat(el.value);
+  const pct = ((val - min) / (max - min)) * 100;
+  el.style.background = `linear-gradient(to left, ${color} ${pct}%, var(--track) ${pct}%)`;
+}
+
+function calc(){
+  const C = parseFloat(capital.value) || 0;
+  const R = parseFloat(risk.value) || 0;
+  const S = parseFloat(sl.value) || 0.0001;
+  const RR = parseFloat(rr.value) || 0;
+  const L = parseFloat(lev.value) || 1;
+
+  levVal.textContent = L + 'x';
+
+  paintSliderTrack(lev, '#0A84FF');
+
+  const riskAmount = C * (R/100);
+  const positionSize = riskAmount / (S/100);
+  const margin = positionSize / L;
+  const marginPctOfCapital = C > 0 ? (margin / C) * 100 : 0;
+  const tpPct = S * RR;
+  const profitAmount = riskAmount * RR;
+
+  marginOut.textContent = fmt(margin);
+  posOut.textContent = fmt(positionSize);
+  riskAmtOut.textContent = fmt(riskAmount);
+  tpOut.textContent = fmt(tpPct) + '%';
+  profitOut.textContent = fmt(profitAmount);
+  gaugePct.textContent = faPct(marginPctOfCapital);
+
+  const clamped = Math.min(marginPctOfCapital, 100);
+  let color = '#34C759';
+  if (marginPctOfCapital > 60) color = '#FF9F0A';
+  if (marginPctOfCapital > 100) color = '#FF3B30';
+  gaugePct.style.color = color;
+
+  const filledCount = Math.round((clamped/100) * TICK_COUNT);
+  ticks.forEach((t, i) => {
+    const active = i < filledCount;
+    t.style.background = active ? color : 'var(--track)';
+    t.style.boxShadow = active ? `0 2px 8px ${color}40` : 'none';
+    t.style.height = active ? (28 + (i % 3)*2) + 'px' : '14px';
+  });
+
+  if (margin > C){
+    warnBox.textContent = 'مارجین لازم از کل سرمایه‌ت بیشتره؛ لوریج رو بالاتر ببر یا حد ضرر و درصد ریسک رو کم‌تر کن.';
+    warnBox.classList.add('show');
+  } else {
+    warnBox.classList.remove('show');
+  }
+
+  document.querySelectorAll('.preset-btn').forEach(b=>{
+    b.classList.toggle('active', parseFloat(b.dataset.v) === L);
+  });
+}
+
+[capital, risk, sl, rr, lev].forEach(el => el.addEventListener('input', calc));
+document.querySelectorAll('.preset-btn').forEach(b=>{
+  b.addEventListener('click', ()=>{ lev.value = b.dataset.v; calc(); });
+});
+
+if ('serviceWorker' in navigator){
+  window.addEventListener('load', ()=>{
+    navigator.serviceWorker.register('sw.js').catch(()=>{});
+  });
+}
+
+calc();
+</script>
+</body>
+</html>
