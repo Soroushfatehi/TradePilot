@@ -749,29 +749,32 @@
 
     <div class="card">
       <p class="section-label">وضعیت کلی بازار</p>
-      <span class="locked-badge">
-        <svg viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
-        نیاز به اتصال
+      <span class="locked-badge" style="background:rgba(52,199,89,.14);color:#1F8A3B;">
+        <svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>
+        متصل — FearGreedChart
       </span>
-      <div class="locked-desc">Risk-On / Risk-Off و AI Market Score نیاز به داده‌ی زنده‌ی شاخص‌ها و بازارها دارن.</div>
+      <div id="marketRegimeOut"><div class="journal-empty">در حال بارگذاری...</div></div>
+      <div class="locked-desc" style="margin-top:8px;">AI Market Score نیاز به تحلیل هوش مصنوعی زنده داره که فعلاً نداریم؛ رژیم بازار بالا از ترکیب Fear & Greed، VIX و نقدینگی محاسبه می‌شه.</div>
     </div>
 
     <div class="card">
       <p class="section-label">خلاصه وضعیت بازارها</p>
-      <span class="locked-badge">
-        <svg viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
-        نیاز به اتصال
+      <span class="locked-badge" style="background:rgba(52,199,89,.14);color:#1F8A3B;">
+        <svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>
+        متصل — FearGreedChart
       </span>
-      <div class="locked-desc">قیمت و روند لحظه‌ای بازارهای اصلی (کریپتو، فارکس، سهام) نیاز به API قیمت زنده داره.</div>
+      <div id="marketSummaryOut"><div class="journal-empty">در حال بارگذاری...</div></div>
+      <div class="locked-desc" style="margin-top:8px;">فعلاً فقط شاخص‌های سهام آمریکا (SPY، QQQ، DIA، IWM، VIX) پوشش داده می‌شه؛ فارکس و کریپتوی گسترده نیاز به منبع دیگه‌ای داره.</div>
     </div>
 
     <div class="card">
       <p class="section-label">احساسات بازار</p>
-      <span class="locked-badge">
-        <svg viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
-        نیاز به اتصال
+      <span class="locked-badge" style="background:rgba(52,199,89,.14);color:#1F8A3B;">
+        <svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>
+        متصل — Fear &amp; Greed
       </span>
-      <div class="locked-desc">Fear & Greed، تحلیل شبکه‌های اجتماعی، رفتار معامله‌گران خرد و تشخیص هیجان بازار — نیاز به منابع داده‌ی بیرونی دارن.</div>
+      <div id="sentimentOut"><div class="journal-empty">در حال بارگذاری...</div></div>
+      <div class="locked-desc" style="margin-top:8px;">تحلیل شبکه‌های اجتماعی و رفتار معامله‌گران خرد هنوز منبع رایگان و معتبری پیدا نکردم؛ اگه سرویس خاصی مدنظرته بگو تا بررسی کنم.</div>
     </div>
 
     <div class="card">
@@ -2516,6 +2519,106 @@ async function loadEconomicCalendar(){
 }
 
 loadEconomicCalendar();
+
+/* ---------- Market Regime / Summary / Sentiment (feargreedchart.com, free public API) ---------- */
+const marketRegimeOut = document.getElementById('marketRegimeOut');
+const marketSummaryOut = document.getElementById('marketSummaryOut');
+const sentimentOut = document.getElementById('sentimentOut');
+
+function fgColor(score){
+  if (score <= 20) return '#FF3B30';
+  if (score <= 40) return '#FF9F0A';
+  if (score <= 60) return '#8E8E93';
+  if (score <= 80) return '#34C759';
+  return '#30D158';
+}
+
+async function loadMarketRegime(){
+  try{
+    const res = await fetch('https://feargreedchart.com/api/?action=regime', {cache:'no-store'});
+    if (!res.ok) throw new Error('bad response');
+    const data = await res.json();
+    const r = data.regime;
+    const cur = data.current;
+    const sevColor = {
+      positive:'#34C759', negative:'#FF3B30', caution:'#FF9F0A',
+      neutral:'#8E8E93', moderate:'#0A84FF', watch:'#FF9F0A'
+    }[r.severity] || '#8E8E93';
+
+    marketRegimeOut.innerHTML = `
+      <div class="result-main" style="font-size:22px;color:${sevColor};">${escapeHtml(r.name)}</div>
+      <div style="display:flex;gap:14px;flex-wrap:wrap;font-size:12.5px;font-family:'JetBrains Mono',monospace;margin-top:8px;">
+        <span style="color:var(--muted);">F&amp;G <b style="color:var(--ink);">${faNum(cur.fg_score)}</b></span>
+        <span style="color:var(--muted);">VIX <b style="color:var(--ink);">${faNum(cur.vix)}</b></span>
+        <span style="color:var(--muted);">نقدینگی <b style="color:var(--ink);">${escapeHtml(cur.liq_label || '—')}</b></span>
+      </div>
+    `;
+  } catch(err){
+    marketRegimeOut.innerHTML = '<div class="journal-empty">لود وضعیت بازار ناموفق بود.</div>';
+  }
+}
+
+async function loadMarketSummary(){
+  try{
+    const res = await fetch('https://feargreedchart.com/api/?action=market', {cache:'no-store'});
+    if (!res.ok) throw new Error('bad response');
+    const data = await res.json();
+    const SYMS = ['SPY','QQQ','DIA','IWM','VIX'];
+    marketSummaryOut.innerHTML = SYMS.filter(s => data[s]).map(s => {
+      const d = data[s];
+      const pctColor = d.pct >= 0 ? '#34C759' : '#FF3B30';
+      const sign = d.pct >= 0 ? '+' : '';
+      return `
+        <div class="preview-row">
+          <span class="preview-name">${s}</span>
+          <span class="preview-meta">${fmt(d.price)} <span style="color:${pctColor};">${sign}${fmt(d.pct)}٪</span></span>
+        </div>
+      `;
+    }).join('');
+  } catch(err){
+    marketSummaryOut.innerHTML = '<div class="journal-empty">لود خلاصه بازارها ناموفق بود.</div>';
+  }
+}
+
+async function loadSentiment(){
+  try{
+    const [stockRes, cryptoRes] = await Promise.all([
+      fetch('https://feargreedchart.com/api/?action=all', {cache:'no-store'}),
+      fetch('https://feargreedchart.com/api/?action=crypto', {cache:'no-store'})
+    ]);
+    if (!stockRes.ok || !cryptoRes.ok) throw new Error('bad response');
+    const stockData = await stockRes.json();
+    const cryptoData = await cryptoRes.json();
+
+    const stockScore = stockData.score.score;
+    const cryptoScore = cryptoData.crypto_fng.score;
+    const cryptoLabel = cryptoData.crypto_fng.label;
+    const btcPrice = cryptoData.prices && cryptoData.prices.BTCUSD ? cryptoData.prices.BTCUSD.price : null;
+
+    sentimentOut.innerHTML = `
+      <div class="preview-row">
+        <span class="preview-name">Fear &amp; Greed سهام</span>
+        <span class="preview-meta" style="color:${fgColor(stockScore)};">${faNum(stockScore)}</span>
+      </div>
+      <div class="preview-row">
+        <span class="preview-name">Fear &amp; Greed کریپتو</span>
+        <span class="preview-meta" style="color:${fgColor(cryptoScore)};">${faNum(cryptoScore)} (${escapeHtml(cryptoLabel)})</span>
+      </div>
+      ${btcPrice ? `
+      <div class="preview-row">
+        <span class="preview-name">قیمت BTC</span>
+        <span class="preview-meta">${fmt(btcPrice)}</span>
+      </div>` : ''}
+    `;
+  } catch(err){
+    sentimentOut.innerHTML = '<div class="journal-empty">لود احساسات بازار ناموفق بود.</div>';
+  }
+}
+
+loadMarketRegime();
+loadMarketSummary();
+loadSentiment();
+
 
 /* ---------- Theme toggle ---------- */
 const themeToggleBtn = document.getElementById('themeToggleBtn');
