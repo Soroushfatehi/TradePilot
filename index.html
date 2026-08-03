@@ -636,7 +636,39 @@
 
   <div class="menu-panel" data-menu="dashboard">
     <div class="card" style="background:rgba(10,132,255,.08);border-color:rgba(10,132,255,.2);">
-      <p class="locked-desc" style="margin:0;">بخش‌هایی که علامت «نیاز به اتصال» دارن، به داده‌ی زنده‌ی بازار/اخبار نیاز دارن که فعلاً بهش وصل نیستیم. Watchlist و پرتفوی چون داده‌ی خودتونه، همین الان کار می‌کنن.</p>
+      <p class="locked-desc" style="margin:0;">اخبار (FinancialJuice) و تقویم اقتصادی (ForexFactory) الان با داده‌ی واقعی و زنده وصل هستن. بقیه‌ی بخش‌ها که علامت «نیاز به اتصال» دارن، هنوز به API قیمت/AI نیاز دارن. Watchlist و پرتفوی هم داده‌ی خودتونه.</p>
+    </div>
+
+    <div class="card">
+      <p class="section-label">اخبار مهم</p>
+      <span class="locked-badge" style="background:rgba(52,199,89,.14);color:#1F8A3B;">
+        <svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>
+        متصل — FinancialJuice
+      </span>
+      <div id="newsWidgetWrap" style="border-radius:14px;overflow:hidden;border:1px solid var(--hairline);">
+        <iframe id="fjNewsFrame" src="https://feed.financialjuice.com/widgets/headlines.aspx?wtype=NEWS&mode=Light&width=100%25&height=420&backC=ffffff&fontC=1c1c1e&affurl="
+          width="100%" height="420" style="border:none;display:block;" loading="lazy" title="FinancialJuice News"></iframe>
+      </div>
+      <div class="locked-desc" style="margin-top:8px;">اثر خبر روی دارایی و تحلیل خودکار هنوز نیاز به AI متصل به این فید داره — فعلاً فقط هدلاین‌های زنده رو می‌بینی.</div>
+    </div>
+
+    <div class="card">
+      <p class="section-label">رویدادهای اقتصادی امروز</p>
+      <span class="locked-badge" style="background:rgba(52,199,89,.14);color:#1F8A3B;">
+        <svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>
+        متصل — ForexFactory
+      </span>
+      <div id="ffCalendarList"><div class="journal-empty">در حال بارگذاری...</div></div>
+    </div>
+
+    <div class="card">
+      <p class="section-label">MACM AI</p>
+      <span class="locked-badge">
+        <svg viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+        بدون API عمومی
+      </span>
+      <div class="locked-desc">MACM AI یه پلتفرم اشتراکی جداست و API عمومی برای اتصال به اپ‌های دیگه نداره، پس نمی‌تونم امتیازها یا تحلیل‌هاشو داخل TradePilot بیارم. فقط می‌تونم لینکش رو بذارم.</div>
+      <a href="https://macm.ai" target="_blank" rel="noopener" style="display:block;text-align:center;margin-top:12px;background:var(--accent);color:#fff;border-radius:14px;padding:12px 0;font-size:13.5px;font-weight:700;text-decoration:none;">باز کردن MACM AI</a>
     </div>
 
     <div class="card">
@@ -655,24 +687,6 @@
         نیاز به اتصال
       </span>
       <div class="locked-desc">قیمت و روند لحظه‌ای بازارهای اصلی (کریپتو، فارکس، سهام) نیاز به API قیمت زنده داره.</div>
-    </div>
-
-    <div class="card">
-      <p class="section-label">اخبار مهم</p>
-      <span class="locked-badge">
-        <svg viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
-        نیاز به اتصال
-      </span>
-      <div class="locked-desc">خلاصه‌ی خبر، اثرش روی هر دارایی، اهمیت، زمان انتشار، و تحلیل خودکار — نیاز به فید خبری زنده داره.</div>
-    </div>
-
-    <div class="card">
-      <p class="section-label">رویدادهای اقتصادی امروز</p>
-      <span class="locked-badge">
-        <svg viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
-        نیاز به اتصال
-      </span>
-      <div class="locked-desc">تقویم اقتصادی نیاز به یک سرویس داده‌ی رویدادهای مالی داره.</div>
     </div>
 
     <div class="card">
@@ -2346,6 +2360,91 @@ function renderDashboardPreviews(){
 }
 
 renderDashboardPreviews();
+
+/* ---------- Economic Calendar (ForexFactory public feed) ---------- */
+const ffCalendarList = document.getElementById('ffCalendarList');
+const FF_IMPACT_COLOR = {
+  'High': '#FF3B30',
+  'Medium': '#FF9F0A',
+  'Low': '#8E8E93',
+  'Holiday': '#0A84FF'
+};
+const FF_IMPACT_LABEL = {
+  'High': 'مهم',
+  'Medium': 'متوسط',
+  'Low': 'کم',
+  'Holiday': 'تعطیلی'
+};
+
+async function loadEconomicCalendar(){
+  ffCalendarList.innerHTML = '<div class="journal-empty">در حال بارگذاری...</div>';
+  const FEED_URL = 'https://nfs.faireconomy.media/ff_calendar_thisweek.json';
+  const ATTEMPTS = [
+    FEED_URL,
+    'https://api.allorigins.win/raw?url=' + encodeURIComponent(FEED_URL),
+    'https://corsproxy.io/?url=' + encodeURIComponent(FEED_URL),
+    'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(FEED_URL)
+  ];
+
+  let events = null;
+  for (const url of ATTEMPTS){
+    try{
+      const res = await fetch(url, {cache: 'no-store'});
+      if (!res.ok) continue;
+      const text = await res.text();
+      events = JSON.parse(text);
+      if (Array.isArray(events)) break;
+      events = null;
+    } catch(err){
+      console.warn('economic calendar attempt failed:', url, err);
+    }
+  }
+
+  if (!events){
+    ffCalendarList.innerHTML = `
+      <div class="journal-empty">لود تقویم اقتصادی از هیچ‌کدوم از منابع ممکن نشد.</div>
+      <button id="ffRetryBtn" style="width:100%;margin-top:10px;background:var(--track);border:none;border-radius:12px;padding:10px 0;font-family:'Vazirmatn';font-size:13px;cursor:pointer;color:var(--ink);">تلاش دوباره</button>
+      <a href="https://www.forexfactory.com/calendar" target="_blank" rel="noopener" style="display:block;text-align:center;margin-top:8px;font-size:12px;color:var(--accent);">مشاهده‌ی دستی توی ForexFactory</a>
+    `;
+    const retryBtn = document.getElementById('ffRetryBtn');
+    if (retryBtn) retryBtn.addEventListener('click', loadEconomicCalendar);
+    return;
+  }
+
+  try{
+    const now = new Date();
+    const todayStr = now.toDateString();
+    const todayEvents = events.filter(e => new Date(e.date).toDateString() === todayStr);
+
+    if (!todayEvents.length){
+      ffCalendarList.innerHTML = '<div class="journal-empty">امروز رویداد مهمی در تقویم ثبت نشده.</div>';
+      return;
+    }
+
+    todayEvents.sort((a,b) => new Date(a.date) - new Date(b.date));
+    ffCalendarList.innerHTML = todayEvents.map(e => {
+      const color = FF_IMPACT_COLOR[e.impact] || '#8E8E93';
+      const label = FF_IMPACT_LABEL[e.impact] || e.impact;
+      const time = new Date(e.date).toLocaleTimeString('fa-IR', {hour:'2-digit', minute:'2-digit'});
+      return `
+        <div class="preview-row" style="align-items:flex-start;">
+          <div style="flex:1;">
+            <div style="display:flex;align-items:center;gap:6px;">
+              <span class="watch-badge" style="background:${color}22;color:${color};">${label}</span>
+              <span style="font-size:11px;color:var(--muted);font-family:'Space Mono',monospace;">${escapeHtml(e.country)}</span>
+            </div>
+            <div style="font-size:13px;margin-top:4px;">${escapeHtml(e.title)}</div>
+          </div>
+          <span class="preview-meta">${time}</span>
+        </div>
+      `;
+    }).join('');
+  } catch(err){
+    ffCalendarList.innerHTML = '<div class="journal-empty">داده‌ی تقویم قابل خوندن نبود.</div>';
+  }
+}
+
+loadEconomicCalendar();
 const pageEyebrow = document.getElementById('pageEyebrow');
 const pageTitle = document.getElementById('pageTitle');
 const pageSub = document.getElementById('pageSub');
