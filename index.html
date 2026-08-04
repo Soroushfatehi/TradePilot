@@ -733,6 +733,7 @@
         <svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>
         متصل — ForexFactory
       </span>
+      <div id="ffDayTabs" style="display:flex;gap:6px;overflow-x:auto;padding-bottom:10px;margin-bottom:2px;"></div>
       <div id="ffCalendarList"><div class="journal-empty">در حال بارگذاری...</div></div>
       <a href="https://www.forexfactory.com/calendar" target="_blank" rel="noopener" style="display:block;text-align:center;margin-top:12px;font-size:12.5px;color:var(--accent);">مشاهده‌ی نتیجه‌ی واقعی توی ForexFactory ↗</a>
     </div>
@@ -2422,6 +2423,7 @@ renderDashboardPreviews();
 
 /* ---------- Economic Calendar (ForexFactory public feed) ---------- */
 const ffCalendarList = document.getElementById('ffCalendarList');
+const ffDayTabs = document.getElementById('ffDayTabs');
 const FF_IMPACT_COLOR = {
   'High': '#FF3B30',
   'Medium': '#FF9F0A',
@@ -2434,6 +2436,9 @@ const FF_IMPACT_LABEL = {
   'Low': 'کم',
   'Holiday': 'تعطیلی'
 };
+
+let ffEventsByDay = {};
+let ffSelectedDay = null;
 
 async function loadEconomicCalendar(){
   ffCalendarList.innerHTML = '<div class="journal-empty">در حال بارگذاری...</div>';
@@ -2471,51 +2476,87 @@ async function loadEconomicCalendar(){
   }
 
   try{
-    const now = new Date();
-    const todayStr = now.toDateString();
     const ALLOWED_CURRENCIES = ['USD', 'GBP', 'EUR'];
     const ALLOWED_IMPACT = ['Medium', 'High'];
-    const todayEvents = events.filter(e =>
-      new Date(e.date).toDateString() === todayStr &&
+    const now = new Date();
+    const todayKey = now.toDateString();
+
+    const filtered = events.filter(e =>
       ALLOWED_CURRENCIES.includes(e.country) &&
-      ALLOWED_IMPACT.includes(e.impact)
+      ALLOWED_IMPACT.includes(e.impact) &&
+      new Date(e.date) >= new Date(new Date().setHours(0,0,0,0))
     );
 
-    if (!todayEvents.length){
-      ffCalendarList.innerHTML = '<div class="journal-empty">امروز رویداد مهمی برای دلار، پوند یا یورو ثبت نشده.</div>';
+    if (!filtered.length){
+      ffDayTabs.innerHTML = '';
+      ffCalendarList.innerHTML = '<div class="journal-empty">رویداد مهمی برای دلار، پوند یا یورو تا آخر هفته ثبت نشده.</div>';
       return;
     }
 
-    todayEvents.sort((a,b) => new Date(a.date) - new Date(b.date));
-    ffCalendarList.innerHTML = todayEvents.map(e => {
-      const color = FF_IMPACT_COLOR[e.impact] || '#8E8E93';
-      const label = FF_IMPACT_LABEL[e.impact] || e.impact;
-      const time = new Date(e.date).toLocaleTimeString('fa-IR', {hour:'2-digit', minute:'2-digit'});
+    ffEventsByDay = {};
+    filtered.forEach(e => {
+      const key = new Date(e.date).toDateString();
+      if (!ffEventsByDay[key]) ffEventsByDay[key] = [];
+      ffEventsByDay[key].push(e);
+    });
 
-      const dataBits = [];
-      if (e.forecast !== undefined && e.forecast !== null && e.forecast !== '') dataBits.push(`<span style="color:var(--muted);">پیش‌بینی <b style="color:var(--ink);font-weight:700;">${escapeHtml(String(e.forecast))}</b></span>`);
-      if (e.previous !== undefined && e.previous !== null && e.previous !== '') dataBits.push(`<span style="color:var(--muted);">قبلی <b style="color:var(--ink);font-weight:700;">${escapeHtml(String(e.previous))}</b></span>`);
-      const dataRow = dataBits.length
-        ? `<div style="display:flex;gap:14px;flex-wrap:wrap;font-size:13.5px;font-family:'JetBrains Mono',monospace;margin-top:7px;letter-spacing:.01em;">${dataBits.join('')}</div>`
-        : '<div style="font-size:12px;color:var(--muted);margin-top:6px;">این رویداد عدد پیش‌بینی/قبلی نداره (مثلاً سخنرانی یا تعطیلی)</div>';
+    const dayKeys = Object.keys(ffEventsByDay).sort((a,b) => new Date(a) - new Date(b));
+    ffSelectedDay = dayKeys.includes(todayKey) ? todayKey : dayKeys[0];
 
-      return `
-        <div class="preview-row" style="align-items:flex-start;">
-          <div style="flex:1;">
-            <div style="display:flex;align-items:center;gap:6px;">
-              <span class="watch-badge" style="background:${color}22;color:${color};">${label}</span>
-              <span style="font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;">${escapeHtml(e.country)}</span>
-            </div>
-            <div style="font-size:13px;margin-top:4px;">${escapeHtml(e.title)}</div>
-            ${dataRow}
-          </div>
-          <span class="preview-meta">${time}</span>
-        </div>
-      `;
+    ffDayTabs.innerHTML = dayKeys.map(key => {
+      const d = new Date(key);
+      const label = key === todayKey ? 'امروز' : d.toLocaleDateString('fa-IR', {weekday:'short', day:'numeric'});
+      return `<button type="button" class="preset-btn ffday-tab" data-day="${key}" style="white-space:nowrap;padding:8px 14px;">${label}</button>`;
     }).join('');
+
+    document.querySelectorAll('.ffday-tab').forEach(btn=>{
+      btn.classList.toggle('active', btn.dataset.day === ffSelectedDay);
+      btn.addEventListener('click', ()=>{
+        ffSelectedDay = btn.dataset.day;
+        document.querySelectorAll('.ffday-tab').forEach(b=>b.classList.toggle('active', b === btn));
+        renderCalendarDay();
+      });
+    });
+
+    renderCalendarDay();
   } catch(err){
     ffCalendarList.innerHTML = '<div class="journal-empty">داده‌ی تقویم قابل خوندن نبود.</div>';
   }
+}
+
+function renderCalendarDay(){
+  const dayEvents = (ffEventsByDay[ffSelectedDay] || []).slice().sort((a,b) => new Date(a.date) - new Date(b.date));
+  if (!dayEvents.length){
+    ffCalendarList.innerHTML = '<div class="journal-empty">این روز رویداد مهمی ثبت نشده.</div>';
+    return;
+  }
+
+  ffCalendarList.innerHTML = dayEvents.map(e => {
+    const color = FF_IMPACT_COLOR[e.impact] || '#8E8E93';
+    const label = FF_IMPACT_LABEL[e.impact] || e.impact;
+    const time = new Date(e.date).toLocaleTimeString('fa-IR', {hour:'2-digit', minute:'2-digit'});
+
+    const dataBits = [];
+    if (e.forecast !== undefined && e.forecast !== null && e.forecast !== '') dataBits.push(`<span style="color:var(--muted);">پیش‌بینی <b style="color:var(--ink);font-weight:800;">${escapeHtml(String(e.forecast))}</b></span>`);
+    if (e.previous !== undefined && e.previous !== null && e.previous !== '') dataBits.push(`<span style="color:var(--muted);">قبلی <b style="color:var(--ink);font-weight:800;">${escapeHtml(String(e.previous))}</b></span>`);
+    const dataRow = dataBits.length
+      ? `<div style="display:flex;gap:14px;flex-wrap:wrap;font-size:14px;font-family:'JetBrains Mono',monospace;margin-top:7px;letter-spacing:.01em;">${dataBits.join('')}</div>`
+      : '<div style="font-size:12px;color:var(--muted);margin-top:6px;">این رویداد عدد پیش‌بینی/قبلی نداره (مثلاً سخنرانی یا تعطیلی)</div>';
+
+    return `
+      <div class="preview-row" style="align-items:flex-start;">
+        <div style="flex:1;">
+          <div style="display:flex;align-items:center;gap:6px;">
+            <span class="watch-badge" style="background:${color}22;color:${color};font-weight:700;">${label}</span>
+            <span style="font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;font-weight:700;">${escapeHtml(e.country)}</span>
+          </div>
+          <div style="font-size:13.5px;font-weight:700;margin-top:5px;">${escapeHtml(e.title)}</div>
+          ${dataRow}
+        </div>
+        <span class="preview-meta" style="font-weight:700;">${time}</span>
+      </div>
+    `;
+  }).join('');
 }
 
 loadEconomicCalendar();
