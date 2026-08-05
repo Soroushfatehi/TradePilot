@@ -1158,7 +1158,7 @@
 
       <div class="field">
         <div class="field-row"><span class="field-name">نماد / دارایی</span></div>
-        <input type="text" id="pSymbol" placeholder="مثلاً BTC" style="font-size:16px;">
+        <input type="text" id="pSymbol" placeholder="مثلاً BTC یا AAPL" style="font-size:16px;">
       </div>
 
       <div class="field">
@@ -1172,12 +1172,29 @@
         </select>
       </div>
 
-      <div class="field" style="margin-bottom:0;">
-        <div class="field-row"><span class="field-name">ارزش فعلی این دارایی</span></div>
+      <div class="field" id="pQuantityField">
+        <div class="field-row"><span class="field-name">مقدار (تعداد کوین/سهم/واحد)</span></div>
+        <input type="number" id="pQuantity" placeholder="مثلاً 0.5" min="0" step="any" inputmode="decimal">
+        <div class="locked-desc" style="margin-top:6px;">قیمتش خودکار و زنده گرفته می‌شه؛ لازم نیست دلاریش رو خودت حساب کنی.</div>
+      </div>
+
+      <div class="field" id="pManualValueField" style="display:none;margin-bottom:0;">
+        <div class="field-row"><span class="field-name">ارزش فعلی این دارایی (دستی)</span></div>
         <input type="number" id="pValue" placeholder="مثلاً 500" min="0" step="1" inputmode="decimal">
+        <div class="locked-desc" style="margin-top:6px;">برای طلا/کالا و موارد دیگه، چون منبع رایگان قیمت زنده نداریم، باید دستی وارد کنی.</div>
       </div>
 
       <button id="addHoldingBtn" style="width:100%;margin-top:16px;background:var(--accent);color:#fff;border:none;border-radius:14px;padding:14px 0;font-family:'Vazirmatn';font-size:14.5px;font-weight:700;cursor:pointer;">افزودن به پرتفوی</button>
+    </div>
+
+    <div class="card" style="display:flex;align-items:center;justify-content:space-between;padding:14px 22px;">
+      <div>
+        <div style="font-size:12.5px;font-weight:700;">قیمت‌های زنده</div>
+        <div id="pLastUpdated" style="font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;margin-top:2px;">—</div>
+      </div>
+      <button id="pRefreshBtn" aria-label="بروزرسانی" style="width:36px;height:36px;border-radius:50%;background:var(--track);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;">
+        <svg id="pRefreshIcon" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="var(--ink)" stroke-width="2"><path d="M21 12a9 9 0 1 1-2.6-6.4"/><path d="M21 4v5h-5"/></svg>
+      </button>
     </div>
 
     <div class="card">
@@ -1861,9 +1878,15 @@ renderWatchlist();
 /* ---------- Portfolio ---------- */
 const pSymbol = document.getElementById('pSymbol');
 const pCategory = document.getElementById('pCategory');
+const pQuantityField = document.getElementById('pQuantityField');
+const pManualValueField = document.getElementById('pManualValueField');
+const pQuantity = document.getElementById('pQuantity');
 const pValue = document.getElementById('pValue');
 const addHoldingBtn = document.getElementById('addHoldingBtn');
 const portfolioList = document.getElementById('portfolioList');
+const pRefreshBtn = document.getElementById('pRefreshBtn');
+const pRefreshIcon = document.getElementById('pRefreshIcon');
+const pLastUpdated = document.getElementById('pLastUpdated');
 
 const pTotalOut = document.getElementById('pTotalOut');
 const pCountOut = document.getElementById('pCountOut');
@@ -1871,6 +1894,13 @@ const pMaxOut = document.getElementById('pMaxOut');
 const pDivOut = document.getElementById('pDivOut');
 
 const PORTFOLIO_KEY = 'tradepilot_portfolio';
+const AUTO_PRICE_CATEGORIES = ['کریپتو', 'سهام', 'فارکس'];
+
+pCategory.addEventListener('change', ()=>{
+  const auto = AUTO_PRICE_CATEGORIES.includes(pCategory.value);
+  pQuantityField.style.display = auto ? '' : 'none';
+  pManualValueField.style.display = auto ? 'none' : '';
+});
 
 function loadPortfolio(){
   try{ return JSON.parse(localStorage.getItem(PORTFOLIO_KEY)) || []; }
@@ -1880,14 +1910,109 @@ function savePortfolio(list){
   try{ localStorage.setItem(PORTFOLIO_KEY, JSON.stringify(list)); }catch(e){}
 }
 
-function renderPortfolio(){
-  const list = loadPortfolio();
-  const total = list.reduce((s,h)=> s + h.value, 0);
+/* --- price fetchers --- */
+const priceCache = {};
+const PRICE_CACHE_TTL = 45000;
 
-  pTotalOut.textContent = fmt(total);
-  pCountOut.textContent = faNum(list.length);
+const CRYPTO_ID_MAP = {
+  BTC:'bitcoin', ETH:'ethereum', USDT:'tether', BNB:'binancecoin', SOL:'solana',
+  XRP:'ripple', ADA:'cardano', DOGE:'dogecoin', TON:'the-open-network', TRX:'tron',
+  MATIC:'matic-network', DOT:'polkadot', LTC:'litecoin', AVAX:'avalanche-2',
+  LINK:'chainlink', SHIB:'shiba-inu', USDC:'usd-coin', ATOM:'cosmos', XLM:'stellar'
+};
 
-  if (!list.length || total <= 0){
+async function fetchWithProxies(url){
+  const attempts = [
+    url,
+    'https://api.allorigins.win/raw?url=' + encodeURIComponent(url),
+    'https://corsproxy.io/?url=' + encodeURIComponent(url),
+    'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(url)
+  ];
+  for (const attempt of attempts){
+    try{
+      const res = await fetch(attempt, {cache:'no-store'});
+      if (!res.ok) continue;
+      return await res.text();
+    } catch(err){ /* try next */ }
+  }
+  return null;
+}
+
+async function getCryptoPrice(symbol){
+  const sym = symbol.toUpperCase();
+  let id = CRYPTO_ID_MAP[sym];
+  if (!id){
+    const searchText = await fetchWithProxies('https://api.coingecko.com/api/v3/search?query=' + encodeURIComponent(symbol));
+    if (!searchText) return null;
+    try{
+      const searchData = JSON.parse(searchText);
+      const match = (searchData.coins || []).find(c => c.symbol.toUpperCase() === sym);
+      if (!match) return null;
+      id = match.id;
+    } catch(e){ return null; }
+  }
+  const priceText = await fetchWithProxies('https://api.coingecko.com/api/v3/simple/price?ids=' + id + '&vs_currencies=usd');
+  if (!priceText) return null;
+  try{
+    const priceData = JSON.parse(priceText);
+    return priceData[id] ? priceData[id].usd : null;
+  } catch(e){ return null; }
+}
+
+async function getForexRate(symbol){
+  const sym = symbol.toUpperCase();
+  if (sym === 'USD') return 1;
+  const text = await fetchWithProxies('https://open.er-api.com/v6/latest/USD');
+  if (!text) return null;
+  try{
+    const data = JSON.parse(text);
+    const rate = data.rates && data.rates[sym];
+    return rate ? (1 / rate) : null;
+  } catch(e){ return null; }
+}
+
+async function getStockPrice(symbol){
+  const text = await fetchWithProxies('https://stooq.com/q/l/?s=' + encodeURIComponent(symbol.toLowerCase()) + '.us&f=sd2t2ohlcv&h&e=csv');
+  if (!text) return null;
+  try{
+    const lines = text.trim().split('\n');
+    if (lines.length < 2) return null;
+    const cols = lines[1].split(',');
+    const close = parseFloat(cols[6]);
+    return isNaN(close) ? null : close;
+  } catch(e){ return null; }
+}
+
+async function getAssetPrice(category, symbol){
+  const key = category + ':' + symbol.toUpperCase();
+  const cached = priceCache[key];
+  if (cached && (Date.now() - cached.ts) < PRICE_CACHE_TTL) return cached.price;
+
+  let price = null;
+  if (category === 'کریپتو') price = await getCryptoPrice(symbol);
+  else if (category === 'فارکس') price = await getForexRate(symbol);
+  else if (category === 'سهام') price = await getStockPrice(symbol);
+
+  if (price !== null) priceCache[key] = {price, ts: Date.now()};
+  return price;
+}
+
+async function resolveHoldingValues(list){
+  return Promise.all(list.map(async h => {
+    if (!AUTO_PRICE_CATEGORIES.includes(h.category)){
+      return {...h, value: h.value || 0, priceOk: true};
+    }
+    const price = await getAssetPrice(h.category, h.symbol);
+    if (price === null) return {...h, value: 0, priceOk: false};
+    return {...h, value: h.quantity * price, unitPrice: price, priceOk: true};
+  }));
+}
+
+async function renderPortfolio(){
+  const rawList = loadPortfolio();
+  if (!rawList.length){
+    pTotalOut.textContent = '0';
+    pCountOut.textContent = '۰';
     pMaxOut.textContent = '۰٪';
     pDivOut.textContent = '—';
     pDivOut.style.color = 'var(--ink)';
@@ -1895,20 +2020,35 @@ function renderPortfolio(){
     return;
   }
 
-  const withPct = list.map(h => ({...h, pct: (h.value/total)*100}));
-  const maxPct = Math.max(...withPct.map(h=>h.pct));
-  pMaxOut.textContent = faPct(maxPct);
+  portfolioList.innerHTML = '<div class="journal-empty">در حال دریافت قیمت‌ها...</div>';
+  const list = await resolveHoldingValues(rawList);
+  const total = list.reduce((s,h)=> s + h.value, 0);
 
-  const hhi = withPct.reduce((s,h)=> s + Math.pow(h.pct/100, 2), 0) * 10000;
-  let divLabel, divColor;
-  if (hhi > 4000){ divLabel = 'خیلی متمرکز'; divColor = '#FF3B30'; }
-  else if (hhi > 2500){ divLabel = 'نسبتاً متمرکز'; divColor = '#FF9F0A'; }
-  else if (hhi > 1500){ divLabel = 'متعادل'; divColor = '#0A84FF'; }
-  else { divLabel = 'متنوع'; divColor = '#34C759'; }
-  pDivOut.textContent = divLabel;
-  pDivOut.style.color = divColor;
+  pTotalOut.textContent = fmt(total);
+  pCountOut.textContent = faNum(list.length);
+  pLastUpdated.textContent = 'آخرین بروزرسانی: ' + new Date().toLocaleTimeString('fa-IR', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
 
-  const sorted = withPct.slice().sort((a,b)=> b.pct - a.pct);
+  if (total <= 0){
+    pMaxOut.textContent = '۰٪';
+    pDivOut.textContent = '—';
+    pDivOut.style.color = 'var(--ink)';
+  } else {
+    const withPct = list.map(h => ({...h, pct: (h.value/total)*100}));
+    const maxPct = Math.max(...withPct.map(h=>h.pct));
+    pMaxOut.textContent = faPct(maxPct);
+
+    const hhi = withPct.reduce((s,h)=> s + Math.pow(h.pct/100, 2), 0) * 10000;
+    let divLabel, divColor;
+    if (hhi > 4000){ divLabel = 'خیلی متمرکز'; divColor = '#FF3B30'; }
+    else if (hhi > 2500){ divLabel = 'نسبتاً متمرکز'; divColor = '#FF9F0A'; }
+    else if (hhi > 1500){ divLabel = 'متعادل'; divColor = '#0A84FF'; }
+    else { divLabel = 'متنوع'; divColor = '#34C759'; }
+    pDivOut.textContent = divLabel;
+    pDivOut.style.color = divColor;
+  }
+
+  const withPct2 = list.map(h => ({...h, pct: total > 0 ? (h.value/total)*100 : 0}));
+  const sorted = withPct2.slice().sort((a,b)=> b.pct - a.pct);
   portfolioList.innerHTML = sorted.map(h => `
     <div class="alloc-row">
       <div class="alloc-head">
@@ -1916,9 +2056,9 @@ function renderPortfolio(){
           <span class="alloc-name">${escapeHtml(h.symbol)}</span>
           <span class="alloc-cat">${escapeHtml(h.category)}</span>
         </div>
-        <span class="alloc-pct">${fmt(h.pct)}٪</span>
+        <span class="alloc-pct">${h.priceOk ? fmt(h.pct) + '٪' : '<span style="color:var(--red);">قیمت نامشخص</span>'}</span>
       </div>
-      <div class="alloc-val">${fmt(h.value)}</div>
+      <div class="alloc-val">${h.quantity ? fmt(h.quantity) + ' × ' + (h.unitPrice ? fmt(h.unitPrice) : '—') + ' = ' : ''}${fmt(h.value)}</div>
       <div class="alloc-bar-track"><div class="alloc-bar-fill" style="width:${Math.min(h.pct,100)}%;"></div></div>
       <button class="alloc-del" data-id="${h.id}">حذف</button>
     </div>
@@ -1936,25 +2076,38 @@ function renderPortfolio(){
 
 addHoldingBtn.addEventListener('click', ()=>{
   const symbol = pSymbol.value.trim();
-  const value = parseFloat(pValue.value);
-  if (!symbol || !value || value <= 0){ pSymbol.focus(); return; }
-  const holding = {
-    id: Date.now(),
-    symbol,
-    category: pCategory.value,
-    value
-  };
+  const auto = AUTO_PRICE_CATEGORIES.includes(pCategory.value);
+  let holding;
+  if (auto){
+    const quantity = parseFloat(pQuantity.value);
+    if (!symbol || !quantity || quantity <= 0){ pSymbol.focus(); return; }
+    holding = { id: Date.now(), symbol, category: pCategory.value, quantity };
+  } else {
+    const value = parseFloat(pValue.value);
+    if (!symbol || !value || value <= 0){ pSymbol.focus(); return; }
+    holding = { id: Date.now(), symbol, category: pCategory.value, value };
+  }
   const list = loadPortfolio();
   list.push(holding);
   savePortfolio(list);
 
   pSymbol.value = '';
+  pQuantity.value = '';
   pValue.value = '';
   renderPortfolio();
   if (typeof renderDashboardPreviews === 'function') renderDashboardPreviews();
 });
 
+pRefreshBtn.addEventListener('click', ()=>{
+  pRefreshIcon.style.animation = 'spin 0.8s linear infinite';
+  renderPortfolio().finally(()=>{ pRefreshIcon.style.animation = ''; });
+});
+
 renderPortfolio();
+
+let portfolioRefreshTimer = setInterval(()=>{
+  if (currentActiveMenu === 'portfolio') renderPortfolio();
+}, 30000);
 
 /* ---------- Strategy Library ---------- */
 const sName = document.getElementById('sName');
@@ -2400,7 +2553,7 @@ renderVault();
 const dashWatchPreview = document.getElementById('dashWatchPreview');
 const dashPortfolioPreview = document.getElementById('dashPortfolioPreview');
 
-function renderDashboardPreviews(){
+async function renderDashboardPreviews(){
   const watch = loadWatchlist();
   if (!watch.length){
     dashWatchPreview.innerHTML = '<div class="journal-empty">واچ‌لیستت خالیه.</div>';
@@ -2414,16 +2567,22 @@ function renderDashboardPreviews(){
     `).join('');
   }
 
-  const holdings = loadPortfolio();
-  const total = holdings.reduce((s,h)=>s+h.value,0);
-  if (!holdings.length || total <= 0){
+  const rawHoldings = loadPortfolio();
+  if (!rawHoldings.length){
     dashPortfolioPreview.innerHTML = '<div class="journal-empty">هنوز دارایی‌ای وارد پرتفوی نکردی.</div>';
+    return;
+  }
+  dashPortfolioPreview.innerHTML = '<div class="journal-empty">در حال دریافت قیمت‌ها...</div>';
+  const holdings = await resolveHoldingValues(rawHoldings);
+  const total = holdings.reduce((s,h)=>s+h.value,0);
+  if (total <= 0){
+    dashPortfolioPreview.innerHTML = '<div class="journal-empty">قیمت دارایی‌ها در دسترس نبود.</div>';
   } else {
     const sorted = holdings.slice().sort((a,b)=> b.value - a.value);
     const rows = sorted.map(h => `
       <div class="preview-row">
         <span class="preview-name">${escapeHtml(h.symbol)}</span>
-        <span class="preview-meta">${fmt(h.value)} (${fmt((h.value/total)*100)}٪)</span>
+        <span class="preview-meta">${h.priceOk ? fmt(h.value) + ' (' + fmt((h.value/total)*100) + '٪)' : 'نامشخص'}</span>
       </div>
     `).join('');
     dashPortfolioPreview.innerHTML = `
