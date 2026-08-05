@@ -50,6 +50,7 @@
     --tabbar-border:rgba(255,255,255,.1);
   }
   *{box-sizing:border-box;}
+  @keyframes spin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
   html,body{margin:0;padding:0;}
   body{
     background:
@@ -712,6 +713,22 @@
   <div class="menu-panel" data-menu="dashboard">
     <div class="card" style="background:rgba(10,132,255,.08);border-color:rgba(10,132,255,.2);">
       <p class="locked-desc" style="margin:0;">اخبار (FinancialJuice) و تقویم اقتصادی (ForexFactory) الان با داده‌ی واقعی و زنده وصل هستن. بقیه‌ی بخش‌ها که علامت «نیاز به اتصال» دارن، هنوز به API قیمت/AI نیاز دارن. Watchlist و پرتفوی هم داده‌ی خودتونه.</p>
+    </div>
+
+    <div class="card" style="display:flex;align-items:center;justify-content:space-between;padding:14px 22px;">
+      <div>
+        <div style="font-size:12.5px;font-weight:700;">بروزرسانی زنده</div>
+        <div id="dashLastUpdated" style="font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;margin-top:2px;">—</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <label style="display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--muted);cursor:pointer;">
+          <input type="checkbox" id="dashAutoRefresh" style="width:15px;height:15px;">
+          خودکار
+        </label>
+        <button id="dashRefreshBtn" aria-label="بروزرسانی" style="width:36px;height:36px;border-radius:50%;background:var(--track);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;">
+          <svg id="dashRefreshIcon" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="var(--ink)" stroke-width="2"><path d="M21 12a9 9 0 1 1-2.6-6.4"/><path d="M21 4v5h-5"/></svg>
+        </button>
+      </div>
     </div>
 
     <div class="card">
@@ -2501,7 +2518,9 @@ async function loadEconomicCalendar(){
     });
 
     const dayKeys = Object.keys(ffEventsByDay).sort((a,b) => new Date(a) - new Date(b));
-    ffSelectedDay = dayKeys.includes(todayKey) ? todayKey : dayKeys[0];
+    if (!ffSelectedDay || !dayKeys.includes(ffSelectedDay)){
+      ffSelectedDay = dayKeys.includes(todayKey) ? todayKey : dayKeys[0];
+    }
 
     ffDayTabs.innerHTML = dayKeys.map(key => {
       const d = new Date(key);
@@ -2660,6 +2679,69 @@ loadMarketRegime();
 loadMarketSummary();
 loadSentiment();
 
+/* ---------- Dashboard live refresh ---------- */
+const dashRefreshBtn = document.getElementById('dashRefreshBtn');
+const dashRefreshIcon = document.getElementById('dashRefreshIcon');
+const dashAutoRefresh = document.getElementById('dashAutoRefresh');
+const dashLastUpdated = document.getElementById('dashLastUpdated');
+const fjNewsFrame = document.getElementById('fjNewsFrame');
+
+let dashRefreshTimer = null;
+
+function updateLastUpdatedStamp(){
+  const now = new Date();
+  dashLastUpdated.textContent = 'آخرین بروزرسانی: ' + now.toLocaleTimeString('fa-IR', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
+}
+
+async function refreshDashboardData(){
+  dashRefreshIcon.style.animation = 'spin 0.8s linear infinite';
+  try{
+    await Promise.all([
+      loadMarketRegime(),
+      loadMarketSummary(),
+      loadSentiment(),
+      loadEconomicCalendar()
+    ]);
+    renderDashboardPreviews();
+    if (fjNewsFrame) fjNewsFrame.src = fjNewsFrame.src;
+    updateLastUpdatedStamp();
+  } finally {
+    dashRefreshIcon.style.animation = '';
+  }
+}
+
+dashRefreshBtn.addEventListener('click', refreshDashboardData);
+
+function startAutoRefresh(){
+  if (dashRefreshTimer) clearInterval(dashRefreshTimer);
+  dashRefreshTimer = setInterval(()=>{
+    if (currentActiveMenu === 'dashboard') refreshDashboardData();
+  }, 60000);
+}
+function stopAutoRefresh(){
+  if (dashRefreshTimer) clearInterval(dashRefreshTimer);
+  dashRefreshTimer = null;
+}
+
+try{
+  if (localStorage.getItem('tradepilot_autorefresh') === 'on'){
+    dashAutoRefresh.checked = true;
+    startAutoRefresh();
+  }
+}catch(e){}
+
+dashAutoRefresh.addEventListener('change', ()=>{
+  if (dashAutoRefresh.checked){
+    startAutoRefresh();
+    try{ localStorage.setItem('tradepilot_autorefresh', 'on'); }catch(e){}
+  } else {
+    stopAutoRefresh();
+    try{ localStorage.setItem('tradepilot_autorefresh', 'off'); }catch(e){}
+  }
+});
+
+updateLastUpdatedStamp();
+
 
 /* ---------- Theme toggle ---------- */
 const themeToggleBtn = document.getElementById('themeToggleBtn');
@@ -2807,7 +2889,9 @@ const MENU_META = {
   }
 };
 
+let currentActiveMenu = 'dashboard';
 function setActiveMenu(menuName){
+  currentActiveMenu = menuName;
   document.querySelectorAll('.menu-panel').forEach(p=>{
     p.style.display = (p.dataset.menu === menuName) ? '' : 'none';
   });
