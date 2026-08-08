@@ -732,6 +732,20 @@
     </div>
 
     <div class="card">
+      <details>
+        <summary style="font-size:12.5px;font-weight:700;color:var(--ink);">تنظیمات اتصال (اختیاری) — پراکسی اختصاصی</summary>
+        <div class="locked-desc" style="margin-top:10px;">
+          پراکسی‌های رایگان عمومی گاهی overload یا بلاک می‌شن. اگه یه Cloudflare Worker اختصاصی برای خودت درست کنی (رایگان، ۵ دقیقه)، اپ اول همیشه اونو امتحان می‌کنه و دیگه به پراکسی‌های عمومی وابسته نیستی.
+        </div>
+        <div class="field" style="margin-top:12px;margin-bottom:8px;">
+          <input type="text" id="customProxyInput" placeholder="https://your-worker.workers.dev" style="font-size:13px;direction:ltr;text-align:left;">
+        </div>
+        <button id="saveProxyBtn" style="width:100%;background:var(--track);border:none;border-radius:12px;padding:10px 0;font-family:'Vazirmatn';font-size:13px;cursor:pointer;color:var(--ink);">ذخیره</button>
+        <div id="proxySaveMsg" style="font-size:11.5px;color:var(--green,#34C759);margin-top:6px;display:none;">ذخیره شد ✓</div>
+      </details>
+    </div>
+
+    <div class="card">
       <p class="section-label">اخبار مهم</p>
       <span class="locked-badge" style="background:rgba(52,199,89,.14);color:#1F8A3B;">
         <svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>
@@ -1317,6 +1331,42 @@
 </nav>
 
 <script>
+/* ---------- Shared CORS proxy chain (with optional custom Cloudflare Worker) ---------- */
+const CUSTOM_PROXY_KEY = 'tradepilot_custom_proxy';
+function getCustomProxy(){
+  try{ return (localStorage.getItem(CUSTOM_PROXY_KEY) || '').trim().replace(/\/$/, ''); }
+  catch(e){ return ''; }
+}
+function buildProxyChain(targetUrl){
+  const chain = [targetUrl];
+  const custom = getCustomProxy();
+  if (custom) chain.push(custom + '/?url=' + encodeURIComponent(targetUrl));
+  chain.push('https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(targetUrl));
+  chain.push('https://api.allorigins.win/raw?url=' + encodeURIComponent(targetUrl));
+  chain.push('https://corsproxy.io/?url=' + encodeURIComponent(targetUrl));
+  chain.push('https://proxy.cors.sh/' + targetUrl);
+  chain.push('https://api.cors.lol/?url=' + encodeURIComponent(targetUrl));
+  return chain;
+}
+async function fetchViaChain(targetUrl, asJson){
+  for (const url of buildProxyChain(targetUrl)){
+    try{
+      const controller = new AbortController();
+      const timeoutId = setTimeout(()=>controller.abort(), 7000);
+      const res = await fetch(url, {cache:'no-store', signal: controller.signal});
+      clearTimeout(timeoutId);
+      if (!res.ok) continue;
+      const text = await res.text();
+      if (asJson){
+        try{ return JSON.parse(text); }
+        catch(e){ continue; }
+      }
+      return text;
+    } catch(err){ /* try next in chain */ }
+  }
+  return null;
+}
+
 const capital = document.getElementById('capital');
 const risk = document.getElementById('risk');
 const sl = document.getElementById('sl');
@@ -1922,20 +1972,7 @@ const CRYPTO_ID_MAP = {
 };
 
 async function fetchWithProxies(url){
-  const attempts = [
-    url,
-    'https://api.allorigins.win/raw?url=' + encodeURIComponent(url),
-    'https://corsproxy.io/?url=' + encodeURIComponent(url),
-    'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(url)
-  ];
-  for (const attempt of attempts){
-    try{
-      const res = await fetch(attempt, {cache:'no-store'});
-      if (!res.ok) continue;
-      return await res.text();
-    } catch(err){ /* try next */ }
-  }
-  return null;
+  return fetchViaChain(url, false);
 }
 
 async function getCryptoPrice(symbol){
@@ -2619,30 +2656,12 @@ let ffSelectedDay = null;
 async function loadEconomicCalendar(){
   ffCalendarList.innerHTML = '<div class="journal-empty">در حال بارگذاری...</div>';
   const FEED_URL = 'https://nfs.faireconomy.media/ff_calendar_thisweek.json';
-  const ATTEMPTS = [
-    FEED_URL,
-    'https://api.allorigins.win/raw?url=' + encodeURIComponent(FEED_URL),
-    'https://corsproxy.io/?url=' + encodeURIComponent(FEED_URL),
-    'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(FEED_URL)
-  ];
+  const events = await fetchViaChain(FEED_URL, true);
 
-  let events = null;
-  for (const url of ATTEMPTS){
-    try{
-      const res = await fetch(url, {cache: 'no-store'});
-      if (!res.ok) continue;
-      const text = await res.text();
-      events = JSON.parse(text);
-      if (Array.isArray(events)) break;
-      events = null;
-    } catch(err){
-      console.warn('economic calendar attempt failed:', url, err);
-    }
-  }
-
-  if (!events){
+  if (!events || !Array.isArray(events)){
     ffCalendarList.innerHTML = `
       <div class="journal-empty">لود تقویم اقتصادی از هیچ‌کدوم از منابع ممکن نشد.</div>
+      <div class="locked-desc" style="margin-top:6px;text-align:center;">اگه ad-blocker یا VPN فعاله، امتحان کن خاموشش کنی — این سرویس‌های واسط معمولاً توسط اون‌ها بلاک می‌شن. یا یه پراکسی اختصاصی توی «تنظیمات اتصال» بالای همین صفحه تنظیم کن.</div>
       <button id="ffRetryBtn" style="width:100%;margin-top:10px;background:var(--track);border:none;border-radius:12px;padding:10px 0;font-family:'Vazirmatn';font-size:13px;cursor:pointer;color:var(--ink);">تلاش دوباره</button>
       <a href="https://www.forexfactory.com/calendar" target="_blank" rel="noopener" style="display:block;text-align:center;margin-top:8px;font-size:12px;color:var(--accent);">مشاهده‌ی دستی توی ForexFactory</a>
     `;
@@ -2754,9 +2773,8 @@ function fgColor(score){
 
 async function loadMarketRegime(){
   try{
-    const res = await fetch('https://feargreedchart.com/api/?action=regime', {cache:'no-store'});
-    if (!res.ok) throw new Error('bad response');
-    const data = await res.json();
+    const data = await fetchViaChain('https://feargreedchart.com/api/?action=regime', true);
+    if (!data) throw new Error('no data');
     const r = data.regime;
     const cur = data.current;
     const sevColor = {
@@ -2779,9 +2797,8 @@ async function loadMarketRegime(){
 
 async function loadMarketSummary(){
   try{
-    const res = await fetch('https://feargreedchart.com/api/?action=market', {cache:'no-store'});
-    if (!res.ok) throw new Error('bad response');
-    const data = await res.json();
+    const data = await fetchViaChain('https://feargreedchart.com/api/?action=market', true);
+    if (!data) throw new Error('no data');
     const SYMS = ['SPY','QQQ','DIA','IWM','VIX'];
     marketSummaryOut.innerHTML = SYMS.filter(s => data[s]).map(s => {
       const d = data[s];
@@ -2801,13 +2818,11 @@ async function loadMarketSummary(){
 
 async function loadSentiment(){
   try{
-    const [stockRes, cryptoRes] = await Promise.all([
-      fetch('https://feargreedchart.com/api/?action=all', {cache:'no-store'}),
-      fetch('https://feargreedchart.com/api/?action=crypto', {cache:'no-store'})
+    const [stockData, cryptoData] = await Promise.all([
+      fetchViaChain('https://feargreedchart.com/api/?action=all', true),
+      fetchViaChain('https://feargreedchart.com/api/?action=crypto', true)
     ]);
-    if (!stockRes.ok || !cryptoRes.ok) throw new Error('bad response');
-    const stockData = await stockRes.json();
-    const cryptoData = await cryptoRes.json();
+    if (!stockData || !cryptoData) throw new Error('no data');
 
     const stockScore = stockData.score.score;
     const cryptoScore = cryptoData.crypto_fng.score;
@@ -2837,6 +2852,20 @@ async function loadSentiment(){
 loadMarketRegime();
 loadMarketSummary();
 loadSentiment();
+
+/* ---------- Custom proxy settings ---------- */
+const customProxyInput = document.getElementById('customProxyInput');
+const saveProxyBtn = document.getElementById('saveProxyBtn');
+const proxySaveMsg = document.getElementById('proxySaveMsg');
+
+customProxyInput.value = getCustomProxy();
+saveProxyBtn.addEventListener('click', ()=>{
+  const val = customProxyInput.value.trim().replace(/\/$/, '');
+  try{ localStorage.setItem(CUSTOM_PROXY_KEY, val); }catch(e){}
+  proxySaveMsg.style.display = 'block';
+  setTimeout(()=>{ proxySaveMsg.style.display = 'none'; }, 2000);
+});
+
 
 /* ---------- Dashboard live refresh ---------- */
 const dashRefreshBtn = document.getElementById('dashRefreshBtn');
