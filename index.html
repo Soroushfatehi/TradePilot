@@ -614,7 +614,7 @@
   </button>
   <p class="eyebrow" id="pageEyebrow">Dashboard</p>
   <h1 id="pageTitle">TradePilot</h1>
-  <p class="sub" id="pageSub">یه نگاه کلی به بازار، اخبار، و وضعیت واچ‌لیست و پرتفوی‌ت.</p>
+  <p class="sub" id="pageSub">خلاصه‌ی بازار و اخبار، به‌علاوه واچ‌لیست و آرشیوت — همه یه‌جا.</p>
 
   <div class="menu-panel" data-menu="capital" style="display:none;">
     <div class="subnav">
@@ -768,6 +768,13 @@
   </div><!-- /menu-panel capital -->
 
   <div class="menu-panel" data-menu="dashboard">
+    <div class="subnav">
+      <button class="subtab active" data-menu="dashboard" data-sub="overview">خلاصه</button>
+      <button class="subtab" data-menu="dashboard" data-sub="watchlist">واچ‌لیست</button>
+      <button class="subtab" data-menu="dashboard" data-sub="archive">آرشیو</button>
+    </div>
+
+    <div class="sub-panel" data-menu="dashboard" data-sub="overview">
     <div class="card" style="background:rgba(10,132,255,.08);border-color:rgba(10,132,255,.2);">
       <p class="locked-desc" style="margin:0;">اخبار (FinancialJuice) و تقویم اقتصادی (ForexFactory) الان با داده‌ی واقعی و زنده وصل هستن. بقیه‌ی بخش‌ها که علامت «نیاز به اتصال» دارن، هنوز به API قیمت/AI نیاز دارن. Watchlist و پرتفوی هم داده‌ی خودتونه.</p>
     </div>
@@ -875,6 +882,85 @@
       <p class="section-label">خلاصه وضعیت پرتفوی</p>
       <div id="dashPortfolioPreview"></div>
     </div>
+    </div><!-- /sub-panel overview -->
+
+    <div class="sub-panel" data-menu="dashboard" data-sub="watchlist" style="display:none;">
+    <div class="card">
+      <p class="section-label">افزودن نماد جدید</p>
+
+      <div class="field">
+        <div class="field-row"><span class="field-name">نماد / دارایی</span></div>
+        <input type="text" id="wSymbol" placeholder="مثلاً ETHUSDT" style="font-size:16px;">
+      </div>
+
+      <div class="field">
+        <div class="field-row"><span class="field-name">اولویت</span></div>
+        <div class="presets">
+          <button type="button" class="preset-btn wprio active" data-p="high">بالا</button>
+          <button type="button" class="preset-btn wprio" data-p="mid">متوسط</button>
+          <button type="button" class="preset-btn wprio" data-p="low">پایین</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field-row"><span class="field-name">قیمت هدف (یادداشت شخصی، غیرخودکار)</span></div>
+        <input type="number" id="wTarget" placeholder="اختیاری" step="any" inputmode="decimal">
+      </div>
+
+      <div class="field" style="margin-bottom:0;">
+        <div class="field-row"><span class="field-name">یادداشت</span></div>
+        <textarea id="wNote" placeholder="چرا زیر نظرشه؟"></textarea>
+      </div>
+
+      <button id="addWatchBtn" style="width:100%;margin-top:16px;background:var(--accent);color:#fff;border:none;border-radius:14px;padding:14px 0;font-family:'Vazirmatn';font-size:14.5px;font-weight:700;cursor:pointer;">افزودن به واچ‌لیست</button>
+    </div>
+
+    <div class="card">
+      <p class="section-label">واچ‌لیست من</p>
+      <div id="watchList"></div>
+    </div>
+    </div><!-- /sub-panel watchlist -->
+
+    <div class="sub-panel" data-menu="dashboard" data-sub="archive" style="display:none;">
+    <div class="card">
+      <p class="section-label">افزودن یادداشت / لینک</p>
+
+      <div class="field">
+        <div class="field-row"><span class="field-name">عنوان</span></div>
+        <input type="text" id="vTitle" placeholder="مثلاً تحلیل فاندامنتال شرکت X" style="font-size:16px;">
+      </div>
+
+      <div class="field">
+        <div class="field-row"><span class="field-name">نوع</span></div>
+        <div class="presets">
+          <button type="button" class="preset-btn vtype active" data-t="note">یادداشت</button>
+          <button type="button" class="preset-btn vtype" data-t="link">لینک</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field-row"><span class="field-name">محتوا یا آدرس لینک</span></div>
+        <textarea id="vContent" placeholder="متن یادداشت یا آدرس لینک رو بنویس"></textarea>
+      </div>
+
+      <div class="field" style="margin-bottom:0;">
+        <div class="field-row"><span class="field-name">تگ‌ها (با کاما جدا کن)</span></div>
+        <input type="text" id="vTags" placeholder="مثلاً بیت‌کوین، بنیادی، طلایی">
+      </div>
+
+      <button id="addVaultBtn" style="width:100%;margin-top:16px;background:var(--accent);color:#fff;border:none;border-radius:14px;padding:14px 0;font-family:'Vazirmatn';font-size:14.5px;font-weight:700;cursor:pointer;">ذخیره</button>
+    </div>
+
+    <div class="card">
+      <p class="section-label">جستجو در آرشیو</p>
+      <input type="text" id="vSearch" placeholder="جستجو بر اساس عنوان، تگ یا متن..." style="font-size:14px;">
+    </div>
+
+    <div class="card">
+      <p class="section-label">آرشیو من</p>
+      <div id="vaultList"></div>
+    </div>
+    </div><!-- /sub-panel archive -->
   </div>
 
   <div class="menu-panel" data-menu="journal" style="display:none;">
@@ -1138,91 +1224,6 @@
     </div><!-- /sub-panel psychology -->
   </div><!-- /menu-panel journal -->
 
-  <div class="menu-panel" data-menu="watchlist" style="display:none;">
-    <div class="subnav">
-      <button class="subtab active" data-menu="watchlist" data-sub="list">لیست</button>
-      <button class="subtab" data-menu="watchlist" data-sub="archive">آرشیو</button>
-    </div>
-
-    <div class="sub-panel" data-menu="watchlist" data-sub="list">
-    <div class="card">
-      <p class="section-label">افزودن نماد جدید</p>
-
-      <div class="field">
-        <div class="field-row"><span class="field-name">نماد / دارایی</span></div>
-        <input type="text" id="wSymbol" placeholder="مثلاً ETHUSDT" style="font-size:16px;">
-      </div>
-
-      <div class="field">
-        <div class="field-row"><span class="field-name">اولویت</span></div>
-        <div class="presets">
-          <button type="button" class="preset-btn wprio active" data-p="high">بالا</button>
-          <button type="button" class="preset-btn wprio" data-p="mid">متوسط</button>
-          <button type="button" class="preset-btn wprio" data-p="low">پایین</button>
-        </div>
-      </div>
-
-      <div class="field">
-        <div class="field-row"><span class="field-name">قیمت هدف (یادداشت شخصی، غیرخودکار)</span></div>
-        <input type="number" id="wTarget" placeholder="اختیاری" step="any" inputmode="decimal">
-      </div>
-
-      <div class="field" style="margin-bottom:0;">
-        <div class="field-row"><span class="field-name">یادداشت</span></div>
-        <textarea id="wNote" placeholder="چرا زیر نظرشه؟"></textarea>
-      </div>
-
-      <button id="addWatchBtn" style="width:100%;margin-top:16px;background:var(--accent);color:#fff;border:none;border-radius:14px;padding:14px 0;font-family:'Vazirmatn';font-size:14.5px;font-weight:700;cursor:pointer;">افزودن به واچ‌لیست</button>
-    </div>
-
-    <div class="card">
-      <p class="section-label">واچ‌لیست من</p>
-      <div id="watchList"></div>
-    </div>
-    </div><!-- /sub-panel list -->
-
-    <div class="sub-panel" data-menu="watchlist" data-sub="archive" style="display:none;">
-    <div class="card">
-      <p class="section-label">افزودن یادداشت / لینک</p>
-
-      <div class="field">
-        <div class="field-row"><span class="field-name">عنوان</span></div>
-        <input type="text" id="vTitle" placeholder="مثلاً تحلیل فاندامنتال شرکت X" style="font-size:16px;">
-      </div>
-
-      <div class="field">
-        <div class="field-row"><span class="field-name">نوع</span></div>
-        <div class="presets">
-          <button type="button" class="preset-btn vtype active" data-t="note">یادداشت</button>
-          <button type="button" class="preset-btn vtype" data-t="link">لینک</button>
-        </div>
-      </div>
-
-      <div class="field">
-        <div class="field-row"><span class="field-name">محتوا یا آدرس لینک</span></div>
-        <textarea id="vContent" placeholder="متن یادداشت یا آدرس لینک رو بنویس"></textarea>
-      </div>
-
-      <div class="field" style="margin-bottom:0;">
-        <div class="field-row"><span class="field-name">تگ‌ها (با کاما جدا کن)</span></div>
-        <input type="text" id="vTags" placeholder="مثلاً بیت‌کوین، بنیادی، طلایی">
-      </div>
-
-      <button id="addVaultBtn" style="width:100%;margin-top:16px;background:var(--accent);color:#fff;border:none;border-radius:14px;padding:14px 0;font-family:'Vazirmatn';font-size:14.5px;font-weight:700;cursor:pointer;">ذخیره</button>
-    </div>
-
-    <div class="card">
-      <p class="section-label">جستجو در آرشیو</p>
-      <input type="text" id="vSearch" placeholder="جستجو بر اساس عنوان، تگ یا متن..." style="font-size:14px;">
-    </div>
-
-    <div class="card">
-      <p class="section-label">آرشیو من</p>
-      <div id="vaultList"></div>
-    </div>
-    </div><!-- /sub-panel archive -->
-  </div>
-
   <div class="menu-panel" data-menu="portfolio" style="display:none;">
     <div class="card">
       <p class="section-label">افزودن دارایی به پرتفوی</p>
@@ -1392,9 +1393,9 @@
     <svg viewBox="0 0 24 24"><path d="M6 3h11a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M8 8h7M8 12h7M8 16h4"/></svg>
     <span>ژورنال</span>
   </button>
-  <button class="tab-btn" data-menu="watchlist">
-    <svg viewBox="0 0 24 24"><path d="M12 17.3 6.2 20.5l1.1-6.5L2.6 9.3l6.5-.9L12 2.5l2.9 5.9 6.5.9-4.7 4.7 1.1 6.5z"/></svg>
-    <span>واچ‌لیست</span>
+  <button class="tab-btn" data-menu="assistant">
+    <svg viewBox="0 0 24 24"><path d="M12 2a5 5 0 0 1 5 5v2a5 5 0 0 1-10 0V7a5 5 0 0 1 5-5z"/><path d="M8 21h8M12 17v4M4 10v1a8 8 0 0 0 16 0v-1"/></svg>
+    <span>دستیار AI</span>
   </button>
   <button class="tab-btn" data-menu="portfolio">
     <svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-9-9"/><path d="M21 12 12 12 12 3"/><path d="M12 12 5.6 18.4"/></svg>
@@ -1403,10 +1404,6 @@
   <button class="tab-btn" data-menu="fundamental">
     <svg viewBox="0 0 24 24"><path d="M4 19V5a2 2 0 0 1 2-2h10l4 4v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/><path d="M14 3v4h4M8 13h8M8 17h5"/></svg>
     <span>فاندامنتال</span>
-  </button>
-  <button class="tab-btn" data-menu="assistant">
-    <svg viewBox="0 0 24 24"><path d="M12 2a5 5 0 0 1 5 5v2a5 5 0 0 1-10 0V7a5 5 0 0 1 5-5z"/><path d="M8 21h8M12 17v4M4 10v1a8 8 0 0 0 16 0v-1"/></svg>
-    <span>دستیار AI</span>
   </button>
 </nav>
 
@@ -3221,7 +3218,7 @@ const pageSub = document.getElementById('pageSub');
 const MENU_META = {
   dashboard: {
     eyebrow: 'Dashboard',
-    sub: 'یه نگاه کلی به بازار، اخبار، و وضعیت واچ‌لیست و پرتفوی‌ت.'
+    sub: 'خلاصه‌ی بازار و اخبار، به‌علاوه واچ‌لیست و آرشیوت — همه یه‌جا.'
   },
   capital: {
     eyebrow: 'Risk · Position Size',
@@ -3230,10 +3227,6 @@ const MENU_META = {
   journal: {
     eyebrow: 'Trade Journal',
     sub: 'هر معامله رو با دلیل، احساس، و نتیجه‌اش ثبت کن تا الگوهای رفتاری و اشتباهات تکراری‌ت مشخص بشن.'
-  },
-  watchlist: {
-    eyebrow: 'Watchlist',
-    sub: 'دارایی‌هایی که زیر نظر داری، به‌علاوه آرشیو یادداشت‌ها و لینک‌هات.'
   },
   portfolio: {
     eyebrow: 'Portfolio',
